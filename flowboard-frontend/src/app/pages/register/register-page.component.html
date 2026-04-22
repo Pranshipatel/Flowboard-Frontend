@@ -1,0 +1,65 @@
+<div class="auth">
+  <div class="auth__bg"></div>
+
+  <div class="auth__wrap">
+    <div class="brand">
+      <div class="brand__logo" aria-hidden="true">F</div>
+      <div class="brand__text">
+        <div class="brand__title">Flowboard</div>
+        <div class="brand__subtitle">Create your account</div>
+      </div>
+    </div>
+
+    <div class="card" role="region" aria-label="Register form">
+      <div class="card__top">
+        <h2 class="card__title">Sign up</h2>
+        <p class="card__hint">A clean workspace starts here.</p>
+      </div>
+
+      <form class="form" (ngSubmit)="onSubmit()">
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input
+            class="field__input"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            [(ngModel)]="email"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Password</span>
+          <input
+            class="field__input"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Create a strong password"
+            [(ngModel)]="password"
+            required
+          />
+        </label>
+
+        <button class="btn btn--primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Create account</span>
+          <span *ngIf="loading">Creating…</span>
+        </button>
+
+        <p class="success" *ngIf="message">{{ message }}</p>
+        <p class="error" *ngIf="error">{{ error }}</p>
+
+        <div class="row row--center">
+          <span class="muted">Already have an account?</span>
+          <a class="link" routerLink="/login">Log in</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="footnote">
+      By signing up you agree to our <span class="muted">Terms</span> and <span class="muted">Privacy</span>.
+    </div>
+  </div>
+</div>

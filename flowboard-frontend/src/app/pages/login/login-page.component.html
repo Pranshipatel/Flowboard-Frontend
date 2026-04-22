@@ -1,0 +1,78 @@
+<div class="auth">
+  <div class="auth__bg"></div>
+
+  <div class="auth__wrap">
+    <div class="brand">
+      <div class="brand__logo" aria-hidden="true">F</div>
+      <div class="brand__text">
+        <div class="brand__title">Flowboard</div>
+        <div class="brand__subtitle">Sign in to continue</div>
+      </div>
+    </div>
+
+    <div class="card" role="region" aria-label="Login form">
+      <div class="card__top">
+        <h2 class="card__title">Log in</h2>
+        <p class="card__hint">Use your email and password or continue with OAuth.</p>
+      </div>
+
+      <form class="form" (ngSubmit)="onSubmit()">
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input
+            class="field__input"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            [(ngModel)]="email"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Password</span>
+          <input
+            class="field__input"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            [(ngModel)]="password"
+            required
+          />
+        </label>
+
+        <button class="btn btn--primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Log in</span>
+          <span *ngIf="loading">Logging in…</span>
+        </button>
+
+        <p class="error" *ngIf="error">{{ error }}</p>
+
+        <div class="row">
+          <a class="link" routerLink="/forgot-password">Forgot password?</a>
+          <a class="link" routerLink="/register">Create account</a>
+        </div>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <button class="btn btn--oauth" type="button" (click)="oauthGoogle()">
+          <span class="btn__icon">G</span>
+          Continue with Google
+        </button>
+
+        <button class="btn btn--oauth" type="button" (click)="oauthGithub()">
+          <span class="btn__icon">⌂</span>
+          Continue with GitHub
+        </button>
+      </form>
+    </div>
+
+    <div class="footnote">
+      By continuing you agree to our <span class="muted">Terms</span> and <span class="muted">Privacy</span>.
+    </div>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="page">
+  <div class="topbar">
+    <div class="topbar__left">
+      <div class="logo" aria-hidden="true">F</div>
+      <div class="topbar__title">Flowboard</div>
+    </div>
+
+    <div class="topbar__right">
+      <a class="link" routerLink="/login">Login</a>
+      <button class="btn btn--ghost" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <div class="card__top">
+        <h2 class="card__title">Profile</h2>
+        <p class="card__hint">Fetch your profile from the auth service via the API gateway.</p>
+      </div>
+
+      <div class="card__body">
+        <div class="grid">
+          <label class="field">
+            <span class="field__label">User ID</span>
+            <input class="field__input" type="number" [(ngModel)]="userId" />
+          </label>
+
+          <button class="btn btn--primary" (click)="loadProfile()" [disabled]="loading">
+            <span *ngIf="!loading">Load Profile</span>
+            <span *ngIf="loading">Loading…</span>
+          </button>
+        </div>
+
+        <p class="error" *ngIf="error">{{ error }}</p>
+
+        <div class="panel" *ngIf="profile">
+          <div class="panel__title">Response</div>
+          <pre class="panel__code">{{ profile | json }}</pre>
+        </div>
+
+        <div class="empty" *ngIf="!profile && !error">
+          Tip: later we can remove the User ID input by adding a backend endpoint like <code>/api/auth/profile/me</code>.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
