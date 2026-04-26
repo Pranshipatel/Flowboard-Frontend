@@ -1,0 +1,140 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+import {
+  Workspace,
+  CreateWorkspaceRequest,
+  UpdateWorkspaceRequest
+} from '../models/workspace.model';
+
+@Injectable({ providedIn: 'root' })
+export class WorkspaceService {
+
+  private http = inject(HttpClient);
+  private base = `${environment.apiBaseUrl}/workspaces`;
+
+  getByMember(userId: number): Observable<Workspace[]> {
+    return this.http.get<Workspace[]>(
+      `${this.base}/member/${userId}`
+    );
+  }
+
+  getByOwner(userId: number): Observable<Workspace[]> {
+    return this.http.get<Workspace[]>(
+      `${this.base}/owner/${userId}`
+    );
+  }
+
+  getPublic(): Observable<Workspace[]> {
+    return this.http.get<Workspace[]>(`${this.base}/public`);
+  }
+
+  getById(id: number): Observable<Workspace> {
+    return this.http.get<Workspace>(`${this.base}/${id}`);
+  }
+
+  create(data: CreateWorkspaceRequest): Observable<Workspace> {
+    return this.http.post<Workspace>(this.base, data);
+  }
+
+  update(
+    id: number,
+    data: UpdateWorkspaceRequest
+  ): Observable<Workspace> {
+    return this.http.put<Workspace>(
+      `${this.base}/${id}`,
+      data
+    );
+  }
+
+  delete(id: number): Observable<string> {
+    return this.http.delete(
+      `${this.base}/${id}`,
+      { responseType: 'text' }
+    );
+  }
+
+  // Member management
+  getMembers(id: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.base}/${id}/members`
+    );
+  }
+
+  addMember(
+    workspaceId: number,
+    userId: number,
+    role: string
+  ): Observable<any> {
+    return this.http.post(
+      `${this.base}/${workspaceId}/members`,
+      { userId, role }
+    );
+  }
+
+  removeMember(
+    workspaceId: number,
+    userId: number
+  ): Observable<string> {
+    return this.http.delete(
+      `${this.base}/${workspaceId}/members/${userId}`,
+      { responseType: 'text' }
+    );
+  }
+
+  updateMemberRole(
+    workspaceId: number,
+    userId: number,
+    role: string
+  ): Observable<string> {
+    return this.http.put(
+      `${this.base}/${workspaceId}/members/${userId}/role`,
+      { role },
+      { responseType: 'text' }
+    );
+  }
+
+  // Invitations
+  inviteMember(
+    workspaceId: number,
+    email: string,
+    role: string
+  ): Observable<string> {
+    return this.http.post(
+      `${this.base}/${workspaceId}/invite`,
+      { email, role },
+      { responseType: 'text' }
+    );
+  }
+
+  acceptInvitation(token: string): Observable<string> {
+    return this.http.get(
+      `${this.base}/invite/accept?token=${token}`,
+      { responseType: 'text' }
+    );
+  }
+
+  revokeInvitation(
+    workspaceId: number,
+    invitationId: number
+  ): Observable<string> {
+    return this.http.delete(
+      `${this.base}/${workspaceId}/invite/${invitationId}`,
+      { responseType: 'text' }
+    );
+  }
+
+  getPendingInvitations(workspaceId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.base}/${workspaceId}/invitations`
+    );
+  }
+
+  search(keyword: string): Observable<Workspace[]> {
+    return this.http.get<Workspace[]>(
+      `${this.base}/search?keyword=${keyword}`
+    );
+  }
+}

@@ -1,0 +1,179 @@
+<div class="board-canvas">
+  
+  <!-- Board Header -->
+  <div class="board-header">
+    <h1 class="board-title">{{ board?.name || 'Loading...' }}</h1>
+    
+    <div class="board-actions">
+      <button class="btn-primary">
+         <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">add</mat-icon> Add board
+      </button>
+      <button class="circle-btn" [matMenuTriggerFor]="boardSettingsMenu"><mat-icon>more_horiz</mat-icon></button>
+      
+      <mat-menu #boardSettingsMenu="matMenu">
+        <button mat-menu-item (click)="showAnalytics = true">Dashboard Metrics</button>
+        <button mat-menu-item (click)="showArchive = true">Archive Menu</button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="deleteBoard()">Delete Board</button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Skeletons (Load Instantly) -->
+  <div class="lists-container" *ngIf="loading">
+     <div class="column-wrapper" *ngFor="let i of [1,2,3,4]">
+        <div class="column">
+           <div class="col-header"><div class="sk-bounce" style="width:100px; height:20px; border-radius:4px;"></div></div>
+           <div class="card-sk sk-bounce"></div>
+           <div class="card-sk sk-bounce" style="height: 120px;"></div>
+        </div>
+     </div>
+  </div>
+
+  <!-- Kanban Area -->
+  <div class="lists-container" *ngIf="!loading"
+       cdkDropList
+       cdkDropListOrientation="horizontal"
+       [cdkDropListData]="lists"
+       (cdkDropListDropped)="onListDrop($event)">
+
+    <ng-container *ngFor="let list of lists">
+      <div *ngIf="!list.isArchived"
+           cdkDrag
+           [cdkDragData]="list"
+           class="column-wrapper">
+        
+        <div class="column">
+          <!-- List Header -->
+          <div class="col-header" cdkDragHandle>
+            <div class="col-title-area">
+              <h2>{{ list.name }}</h2>
+            </div>
+            <button class="col-opts" [matMenuTriggerFor]="listMenu"><mat-icon>more_horiz</mat-icon></button>
+
+            <mat-menu #listMenu="matMenu">
+              <button mat-menu-item (click)="archiveList(list.id)">Archive List</button>
+              <button mat-menu-item (click)="deleteList(list.id)">Delete List</button>
+            </mat-menu>
+          </div>
+
+          <!-- Cards Drop Zone -->
+          <div cdkDropList
+              [id]="'list-' + list.id"
+              [cdkDropListData]="getCards(list.id)"
+              [cdkDropListConnectedTo]="getConnectedLists()"
+              (cdkDropListDropped)="onCardDrop($event, list.id)"
+              class="cards-scroll">
+
+            <ng-container *ngFor="let card of getCards(list.id); let i = index">
+              <div *ngIf="!card.isArchived"
+                   cdkDrag
+                   [cdkDragData]="card"
+                   class="task-card"
+                   (click)="openCardDetail(card)">
+                
+                <!-- Fake Progress bar on top for styling (like image) -->
+                <div class="top-progress" *ngIf="i % 3 === 0"></div>
+                <div class="top-progress-blue" *ngIf="i % 3 === 1"></div>
+
+                <div class="card-body">
+                   <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                     <div class="card-title" style="flex: 1;">{{ card.title }}</div>
+                     <button mat-icon-button (click)="$event.stopPropagation()" [matMenuTriggerFor]="cardMenu" style="width: 24px; height: 24px; line-height: 24px; padding: 0;">
+                        <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #94A3B8;">more_vert</mat-icon>
+                     </button>
+                   </div>
+                   
+                   <mat-menu #cardMenu="matMenu">
+                      <button mat-menu-item style="color: #DC2626;" (click)="deleteCardDirect(card, $event)">
+                         <mat-icon style="color: #DC2626;">delete</mat-icon> Delete Card
+                      </button>
+                   </mat-menu>
+
+                   <!-- Tags Mapping -->
+                   <div class="tags-row" *ngIf="card.priority">
+                      <!-- Dummy Department Tag -->
+                      <span class="pill-tag bg-blue">UX/UI</span>
+                      
+                      <!-- Priority Tag -->
+                      <span class="pill-tag" 
+                            [class.bg-red]="card.priority === 'CRITICAL' || card.priority === 'HIGH'"
+                            [class.bg-yellow]="card.priority === 'MEDIUM'"
+                            [class.bg-green]="card.priority === 'LOW'">
+                        {{ card.priority | titlecase }} Priority
+                      </span>
+                   </div>
+
+                   <!-- Progress Bar (Visual stub) -->
+                   <div class="progress-section" *ngIf="card.description || card.id % 2 === 0">
+                      <div class="progress-text">Progress: {{ (card.id * 17) % 100 }}%</div>
+                      <div class="progress-track"><div class="progress-fill" [style.width.%]="(card.id * 17) % 100"></div></div>
+                   </div>
+                </div>
+
+                <div class="card-footer">
+                   <div class="footer-left">
+                     <div class="avatar-tiny" *ngIf="card.id % 2 === 0"><img src="https://i.pravatar.cc/100?img={{card.id}}" /></div>
+                     <span class="deadline" *ngIf="card.dueDate">Deadline: {{ card.dueDate | date:'MM/dd' }}</span>
+                   </div>
+                   <div class="footer-right">
+                     <span class="meta-stat"><mat-icon>check_box</mat-icon> {{ (card.id % 5) }}/5</span>
+                     <span class="meta-stat"><mat-icon>chat_bubble_outline</mat-icon> {{ (card.id % 8) }}</span>
+                   </div>
+                </div>
+
+                <div *cdkDragPlaceholder class="drag-placeholder"></div>
+              </div>
+            </ng-container>
+
+          </div>
+
+          <!-- Add Card -->
+          <div class="col-footer">
+            <ng-container *ngIf="list.id !== activeAddCardListId">
+              <button class="add-card-btn" (click)="activeAddCardListId = list.id">
+                + Add card
+              </button>
+            </ng-container>
+            <div *ngIf="list.id === activeAddCardListId" class="composer">
+               <app-card-create
+                  [listId]="list.id"
+                  [boardId]="board!.id"
+                  (cardCreated)="onCardCreated($event, list.id); activeAddCardListId = null"
+                  (cancelled)="activeAddCardListId = null">
+                </app-card-create>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Add List Column -->
+    <div class="column-wrapper">
+      <button *ngIf="!showAddList" class="add-col-btn" (click)="showAddList = true">
+        + Add another list
+      </button>
+      <div *ngIf="showAddList" class="column">
+         <div class="p-3">
+            <input [formControl]="$any(listForm.get('name'))"
+                   (keydown.enter)="addList()"
+                   (keydown.escape)="showAddList = false"
+                   placeholder="Enter list title..."
+                   autofocus class="col-input" />
+            <div class="flex gap-2 mt-2">
+               <button class="btn-primary" style="height:32px" (click)="addList()">Add</button>
+               <button mat-icon-button (click)="showAddList = false"><mat-icon>close</mat-icon></button>
+            </div>
+         </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Standard Overlays (Modal wrappers untouched structurally) -->
+  <div *ngIf="showCardDetail && selectedCard" class="modal-overlay" (click)="closeCardDetail()">
+    <div class="modal-content" style="width:900px" (click)="$event.stopPropagation()">
+      <app-card-detail *ngIf="showCardDetail && selectedCard" [card]="selectedCard" [boardMembers]="boardMembers" (cardUpdated)="onCardUpdated($event)" (cardDeleted)="onCardDeleted($event)" (closed)="closeCardDetail()"></app-card-detail>
+    </div>
+  </div>
+</div>

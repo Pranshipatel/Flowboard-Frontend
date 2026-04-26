@@ -1,0 +1,111 @@
+<div class="app-container">
+
+  <!-- FAR LEFT DARK SIDEBAR -->
+  <aside class="sidebar-dark">
+    <div class="top-actions">
+      <div class="brand-icon">F</div>
+      <button class="icon-nav active" routerLink="/dashboard"><mat-icon>home</mat-icon></button>
+      <button class="icon-nav" routerLink="/calendar"><mat-icon>calendar_today</mat-icon></button>
+      <button class="icon-nav"><mat-icon>group</mat-icon></button>
+      <button class="icon-nav" routerLink="/profile"><mat-icon>settings</mat-icon></button>
+    </div>
+    
+    <div class="bottom-actions">
+      <button class="icon-nav"><mat-icon>exit_to_app</mat-icon></button>
+      <button class="profile-nav" [matMenuTriggerFor]="userMenu">
+        <div class="avatar-mini" [style.background]="(user$ | async)?.avatarUrl ? 'url(' + (user$ | async)!.avatarUrl + ') center/cover' : '#DFE1E6'">
+          {{ (user$ | async)?.avatarUrl ? '' : ((user$ | async)?.fullName?.[0] || 'U') }}
+        </div>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <div class="p-4">
+           <p class="font-bold">{{ (user$ | async)?.fullName }}</p>
+           <p class="text-sm text-gray-500">{{ planName() }}</p>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">Sign out</button>
+      </mat-menu>
+    </div>
+  </aside>
+
+  <!-- SECONDARY LIGHT SIDEBAR -->
+  <aside class="sidebar-light">
+    <div class="sidebar-header">
+      <mat-icon class="text-blue-500">assessment</mat-icon>
+      <span class="font-bold text-lg">FlowBoard</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <a routerLink="/dashboard" class="side-link"><mat-icon>check_circle_outline</mat-icon> My Tasks</a>
+      <a routerLink="/dashboard" class="side-link active"><mat-icon>grid_view</mat-icon> All Projects</a>
+      <a routerLink="/calendar" class="side-link"><mat-icon>calendar_month</mat-icon> Calendar</a>
+      <a class="side-link"><mat-icon>group</mat-icon> Teams</a>
+      <a routerLink="/profile" class="side-link"><mat-icon>settings</mat-icon> Settings</a>
+    </div>
+
+    <!-- Pinned Workspaces (Visual stubs representing routing contexts) -->
+    <div class="sidebar-projects">
+      <p class="projects-title">PINNED PROJECTS</p>
+      <a class="side-link">Product Launch '26</a>
+      <a class="side-link">Marketing Campaign</a>
+      <a class="side-link">Engineering Roadmap</a>
+    </div>
+  </aside>
+
+  <!-- RIGHT MAIN AREA -->
+  <div class="main-wrapper">
+    
+    <!-- TOP NAVBAR -->
+    <header class="top-nav">
+      <div class="search-container">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" placeholder="Search Tasks, People, Projects" class="search-input"
+               [(ngModel)]="searchQuery"
+               (focus)="isSearchOpen = true"
+               (blur)="closeSearch()" />
+               
+        <!-- Search Dropdown Overlay -->
+        <div class="search-dropdown" *ngIf="isSearchOpen && searchQuery.trim().length > 0">
+           <div class="search-dropdown-header">
+              <h3>Search Results</h3>
+           </div>
+           
+           <div class="search-results-list" *ngIf="filteredSearchResults.length > 0">
+              <div class="search-result-item" *ngFor="let result of filteredSearchResults" (click)="navigateToResult(result.route)">
+                 <div class="result-icon bg-blue-50 text-primary">
+                    <mat-icon style="font-size: 18px; width: 18px; height: 18px;">{{ result.icon }}</mat-icon>
+                 </div>
+                 <div class="result-content">
+                    <p class="result-name">{{ result.name }}</p>
+                    <p class="result-type">{{ result.type }}</p>
+                 </div>
+                 <mat-icon class="result-arrow text-slate-300">chevron_right</mat-icon>
+              </div>
+           </div>
+           
+           <div class="search-empty-state" *ngIf="filteredSearchResults.length === 0">
+              <mat-icon class="text-slate-300 mb-2" style="font-size:32px; width:32px; height:32px;">search_off</mat-icon>
+              <p>No results found for "{{ searchQuery }}"</p>
+              <span>Try checking spelling or generic terms like 'profile'</span>
+           </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <app-notification-center></app-notification-center>
+        <button class="add-global-btn"><mat-icon>add</mat-icon></button>
+        <div class="avatar-sm" style="cursor: pointer" routerLink="/profile">
+           <img *ngIf="(user$ | async)?.avatarUrl" [src]="(user$ | async)!.avatarUrl" alt="Avatar"/>
+           <span *ngIf="!(user$ | async)?.avatarUrl">{{ (user$ | async)?.fullName?.[0] || 'U' }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT OUTLET -->
+    <main class="content-scroll">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<div class="auth-layout">
+  <div class="auth-card">
+    
+    <div class="auth-header">
+      <div class="auth-icon">
+        <mat-icon>verified_user</mat-icon>
+      </div>
+      <h1 class="auth-title">Verify your email</h1>
+      <p class="auth-subtitle">
+        We've sent a 6-digit verification code to <br>
+        <strong>{{ email }}</strong>
+      </p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert error">
+      <mat-icon>error_outline</mat-icon>
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert success">
+      <mat-icon>check_circle_outline</mat-icon>
+      {{ successMessage }}
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="otp-form">
+      <label class="custom-label">Verification Code</label>
+      <mat-form-field appearance="outline" class="otp-input">
+        <input matInput formControlName="otp" 
+               placeholder="000000" maxlength="6"
+               autocomplete="one-time-code" />
+        <mat-hint>Enter the 6-digit code from your email</mat-hint>
+        <mat-error *ngIf="otp.hasError('required')">OTP is required</mat-error>
+        <mat-error *ngIf="otp.hasError('pattern')">Must be exactly 6 digits</mat-error>
+      </mat-form-field>
+
+      <button mat-flat-button class="auth-btn" 
+              type="submit" [disabled]="loading || form.invalid">
+        <mat-spinner *ngIf="loading" diameter="20" style="display:inline-block; margin-right: 8px;"></mat-spinner>
+        {{ loading ? 'Verifying...' : 'Verify & Continue' }}
+      </button>
+    </form>
+
+    <div class="resend-box">
+      <p>Didn't receive the code?</p>
+      <button mat-button class="resend-btn" 
+              (click)="resend()" [disabled]="resending">
+        <mat-spinner *ngIf="resending" diameter="16" style="display:inline-block; margin-right: 6px;"></mat-spinner>
+        {{ resending ? 'Sending...' : 'Resend Code' }}
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      <a routerLink="/login" class="back-to-login">
+        <mat-icon>arrow_back</mat-icon>
+        Back to login
+      </a>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,46 @@
+<button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-bell">
+  <mat-icon [matBadge]="unreadCount$ | async" 
+            [matBadgeHidden]="(unreadCount$ | async) === 0" 
+            matBadgeColor="warn"
+            matBadgeSize="small">notifications</mat-icon>
+</button>
+
+<mat-menu #notifMenu="matMenu" class="modern-notif-menu">
+  <div class="notif-header flex items-center justify-between p-4 bg-slate-50 border-b">
+    <h3 class="text-sm font-bold text-slate-900 m-0">Notifications</h3>
+    <button mat-button color="primary" class="text-xs uppercase font-extrabold">Mark all as read</button>
+  </div>
+
+  <div class="notif-scroll-area custom-scrollbar max-h-[400px] overflow-y-auto min-w-[320px]">
+    @if ((notifications$ | async); as notifications) {
+      @if (notifications.length === 0) {
+        <div class="flex flex-col items-center justify-center p-8 text-slate-400">
+          <mat-icon class="text-4xl w-10 h-10 mb-2 opacity-20">notifications_none</mat-icon>
+          <span class="text-xs font-medium">All caught up!</span>
+        </div>
+      }
+
+      @for (notif of notifications; track notif.id) {
+        <div class="notif-item flex gap-4 p-4 hover:bg-slate-50 cursor-pointer transition-colors border-b last:border-0"
+             [class.unread]="!notif.isRead"
+             (click)="markAsRead(notif)">
+          <div class="notif-icon-wrapper flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+               [ngClass]="notif.type.toLowerCase()">
+            <mat-icon class="text-xl">{{ getTypeIcon(notif.type) }}</mat-icon>
+          </div>
+          <div class="notif-content flex-1">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-slate-800">{{ notif.title }}</span>
+              <span class="text-[10px] text-slate-400">{{ notif.createdAt | date:'shortTime' }}</span>
+            </div>
+            <p class="text-[12px] text-slate-600 leading-tight m-0 line-clamp-2">{{ notif.message }}</p>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="notif-footer p-2 text-center border-t">
+    <button mat-button class="w-full text-xs font-bold text-slate-500">View all notifications</button>
+  </div>
+</mat-menu>

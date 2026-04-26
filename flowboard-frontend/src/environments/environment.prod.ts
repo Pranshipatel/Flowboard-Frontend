@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: '', // set to your deployed gateway URL
+  apiBaseUrl: 'http://localhost:8080/api/v1', // set to your deployed gateway URL
 };

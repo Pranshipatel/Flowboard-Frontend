@@ -1,0 +1,122 @@
+<div class="dash-canvas" *ngIf="user">
+  <div class="dash-content">
+    
+    <div class="header-section">
+      <div>
+        <mat-icon style="color: #64748B; cursor: pointer; margin-bottom: 8px;" routerLink="/dashboard">arrow_back</mat-icon>
+        <h1 class="greeting">Account Settings</h1>
+        <p class="subtitle">Manage your personal details, security, and preferences.</p>
+      </div>
+    </div>
+
+    <div class="profile-layout-grid">
+      
+      <!-- Left sidebar: User identity card -->
+      <div class="profile-sidebar">
+        <div class="action-card text-center relative overflow-hidden">
+          <div class="h-24 absolute top-0 left-0 w-full" style="background: linear-gradient(135deg, #1B2B3C, #1EA7C5);"></div>
+          
+          <div class="avatar-large relative z-10 mx-auto mt-8 border-4 border-white shadow-sm"
+               [style.background]="getHeaderAvatarUrl() ? 'url(' + getHeaderAvatarUrl() + ') center/cover' : 'hsl(' + (user.id * 47 % 360) + ',60%,50%)'">
+            {{ getHeaderAvatarUrl() ? '' : getInitials() }}
+          </div>
+          
+          <div class="mt-4">
+            <h2 class="text-xl font-bold text-slate-800">{{ user.fullName }}</h2>
+            <p class="text-sm font-semibold text-primary mt-1">{{"@"}}{{ user.username }}</p>
+            <div class="badge mt-2 uppercase tracking-wide">{{ user.role }}</div>
+          </div>
+          
+          <div class="border-t border-slate-100 mt-6 pt-6 text-left">
+            <div class="flex items-center gap-3 text-sm text-slate-600 mb-3">
+              <mat-icon class="text-slate-400 text-lg">email</mat-icon> {{ user.email }}
+            </div>
+            <div class="flex items-center gap-3 text-sm text-slate-600">
+              <mat-icon class="text-slate-400 text-lg">event</mat-icon> Joined {{ user.createdAt | date:'longDate' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Main: Forms -->
+      <div class="profile-main">
+        
+        <div class="action-card">
+          <h3 class="flex items-center gap-2 mb-2"><mat-icon class="text-primary">person</mat-icon> Personal Information</h3>
+          <p class="text-sm text-slate-500 mb-6">Update your display information and public profile.</p>
+
+          <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="form-row mb-4">
+              <div class="flex-1">
+                <label class="custom-label">Full Name</label>
+                <input class="input-base w-full" formControlName="fullname" placeholder="Alice Smith" />
+              </div>
+              <div class="flex-1">
+                <label class="custom-label">Username</label>
+                <input class="input-base w-full" formControlName="username" placeholder="alicesmith" />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="custom-label">Avatar URL</label>
+              <input class="input-base w-full" formControlName="avatarUrl" placeholder="https://example.com/avatar.png" />
+              <p class="text-xs text-slate-400 mt-1">Provide a direct link to an image (JPEG, PNG).</p>
+            </div>
+
+            <div class="mb-6">
+              <label class="custom-label">Biography</label>
+              <textarea class="input-base w-full min-h-[100px] py-3" formControlName="bio" placeholder="Tell your team about yourself..."></textarea>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+              <button class="btn-primary px-6" type="submit" [disabled]="savingProfile || !hasProfileChanges()">
+                {{ savingProfile ? 'Saving...' : 'Save Profile' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="action-card mt-6 border-red-50" style="border-color: #FEE2E2;">
+          <h3 class="flex items-center gap-2 mb-2 text-danger"><mat-icon>security</mat-icon> Security & Password</h3>
+          <p class="text-sm text-slate-500 mb-6">Regularly update your password to maintain account security.</p>
+
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="form-row mb-4">
+              <div class="flex-1 relative">
+                <label class="custom-label">Current Password</label>
+                <input class="input-base w-full pr-10" [type]="hideOld ? 'password' : 'text'" formControlName="oldPassword" />
+                <button type="button" class="absolute right-2 top-8 text-slate-400 hover:text-slate-600" (click)="hideOld = !hideOld">
+                  <mat-icon class="text-sm">{{ hideOld ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+              <div class="flex-1 relative">
+                <label class="custom-label">New Password</label>
+                <input class="input-base w-full pr-10" [type]="hideNew ? 'password' : 'text'" formControlName="newPassword" />
+                <button type="button" class="absolute right-2 top-8 text-slate-400 hover:text-slate-600" (click)="hideNew = !hideNew">
+                  <mat-icon class="text-sm">{{ hideNew ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4">
+              <button class="btn-primary" style="background:#EF4444" type="submit" [disabled]="savingPassword || passwordForm.invalid">
+                {{ savingPassword ? 'Updating...' : 'Update Password' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="dash-canvas">
+  <div class="dash-content">
+    <div class="sk-bounce w-48 h-10 mb-8 rounded-lg"></div>
+    <div class="grid grid-cols-3 gap-8">
+      <div class="sk-bounce h-96 rounded-xl"></div>
+      <div class="col-span-2 sk-bounce h-96 rounded-xl"></div>
+    </div>
+  </div>
+</div>
