@@ -6,6 +6,55 @@
   background: white;
 }
 
+/* Upgrade Banner */
+.upgrade-banner {
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  margin: 16px 24px 0 24px;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.banner-content mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #ffd700;
+}
+
+.banner-content span {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.upgrade-btn-banner {
+  background: white;
+  color: #4f46e5;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.upgrade-btn-banner:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 /* Board Header */
 .board-header {
   display: flex;

@@ -1,0 +1,55 @@
+<div class="upgrade-container">
+  <div class="upgrade-card">
+    <div class="top-accent"></div>
+    
+    <div class="icon-wrapper">
+      <mat-icon>auto_awesome</mat-icon>
+    </div>
+    
+    <h1>Flowboard Premium</h1>
+    <p>Unlock the ultimate productivity toolkit. Experience zero limits and powerful automation tailored for professionals.</p>
+    
+    <div class="features-grid">
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Unlimited Workspaces</span>
+      </div>
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Unlimited Lists & Cards</span>
+      </div>
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Advanced Notifications</span>
+      </div>
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Custom Workflows</span>
+      </div>
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Premium Analytics</span>
+      </div>
+      <div class="feature-item">
+        <mat-icon>check_circle</mat-icon>
+        <span>Priority 24/7 Support</span>
+      </div>
+    </div>
+
+    <div class="price-tag">
+      <span class="price-amount">₹999</span>
+      <span class="price-period">/ lifetime</span>
+    </div>
+
+    <button class="upgrade-btn" (click)="initiatePayment()" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading">
+        Upgrade Now
+      </ng-container>
+      <mat-spinner *ngIf="isLoading" diameter="24" color="accent" style="filter: brightness(0) invert(1);"></mat-spinner>
+    </button>
+    
+    <div class="guarantee">
+      <mat-icon>verified</mat-icon> Secure payment via Razorpay.
+    </div>
+  </div>
+</div>

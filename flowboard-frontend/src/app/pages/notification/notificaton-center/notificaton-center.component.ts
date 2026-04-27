@@ -12,6 +12,7 @@ import { RouterModule } from '@angular/router';
 import * as NotificationActions from '../../../store/notification/notification.actions';
 import * as NotificationSelectors from '../../../store/notification/notification.selectors';
 import { Notification } from '../../../core/models/notification.model';
+import { PaymentService } from '../../../core/services/payment.service';
 
 @Component({
   selector: 'app-notification-center',
@@ -30,13 +31,21 @@ import { Notification } from '../../../core/models/notification.model';
 })
 export class NotificationCenterComponent implements OnInit {
   private store = inject(Store);
+  private paymentService = inject(PaymentService);
 
   notifications$: Observable<Notification[]> = this.store.select(NotificationSelectors.selectAllNotifications);
   unreadCount$:   Observable<number>        = this.store.select(NotificationSelectors.selectUnreadCount);
   loading$:       Observable<boolean>       = this.store.select(NotificationSelectors.selectNotificationLoading);
 
+  isPremium = false;
+
   ngOnInit(): void {
-    this.store.dispatch(NotificationActions.loadNotifications());
+    this.paymentService.subscriptionStatus.subscribe(status => {
+      this.isPremium = status === 'PREMIUM' || status === 'PRO' || status === 'BUSINESS';
+      if (this.isPremium) {
+        this.store.dispatch(NotificationActions.loadNotifications());
+      }
+    });
   }
 
   markAsRead(n: Notification): void {

@@ -19,6 +19,15 @@
     </div>
   </div>
 
+  <!-- Upgrade Banner for FREE users -->
+  <div *ngIf="!isPremium" class="upgrade-banner">
+    <div class="banner-content">
+      <mat-icon>lock</mat-icon>
+      <span>You are on the FREE plan. Upgrade to Premium to unlock unlimited lists, cards, and advanced features.</span>
+    </div>
+    <button class="upgrade-btn-banner" routerLink="/upgrade">Upgrade Now</button>
+  </div>
+
   <!-- Skeletons (Load Instantly) -->
   <div class="lists-container" *ngIf="loading">
      <div class="column-wrapper" *ngFor="let i of [1,2,3,4]">
@@ -35,6 +44,7 @@
        cdkDropList
        cdkDropListOrientation="horizontal"
        [cdkDropListData]="lists"
+       [cdkDropListDisabled]="!isPremium"
        (cdkDropListDropped)="onListDrop($event)">
 
     <ng-container *ngFor="let list of lists">
@@ -62,12 +72,14 @@
               [id]="'list-' + list.id"
               [cdkDropListData]="getCards(list.id)"
               [cdkDropListConnectedTo]="getConnectedLists()"
+              [cdkDropListDisabled]="!isPremium"
               (cdkDropListDropped)="onCardDrop($event, list.id)"
               class="cards-scroll">
 
             <ng-container *ngFor="let card of getCards(list.id); let i = index">
               <div *ngIf="!card.isArchived"
                    cdkDrag
+                   [cdkDragDisabled]="!isPremium"
                    [cdkDragData]="card"
                    class="task-card"
                    (click)="openCardDetail(card)">
@@ -131,7 +143,8 @@
           <!-- Add Card -->
           <div class="col-footer">
             <ng-container *ngIf="list.id !== activeAddCardListId">
-              <button class="add-card-btn" (click)="activeAddCardListId = list.id">
+              <button class="add-card-btn" (click)="activeAddCardListId = list.id" [disabled]="!isPremium" [title]="!isPremium ? 'Upgrade to Premium to add cards' : ''">
+                <mat-icon *ngIf="!isPremium" style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">lock</mat-icon>
                 + Add card
               </button>
             </ng-container>
@@ -150,7 +163,8 @@
 
     <!-- Add List Column -->
     <div class="column-wrapper">
-      <button *ngIf="!showAddList" class="add-col-btn" (click)="showAddList = true">
+      <button *ngIf="!showAddList" class="add-col-btn" (click)="showAddList = true" [disabled]="!isPremium" [title]="!isPremium ? 'Upgrade to Premium to add lists' : ''">
+        <mat-icon *ngIf="!isPremium" style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">lock</mat-icon>
         + Add another list
       </button>
       <div *ngIf="showAddList" class="column">
@@ -176,4 +190,30 @@
       <app-card-detail *ngIf="showCardDetail && selectedCard" [card]="selectedCard" [boardMembers]="boardMembers" (cardUpdated)="onCardUpdated($event)" (cardDeleted)="onCardDeleted($event)" (closed)="closeCardDetail()"></app-card-detail>
     </div>
   </div>
+
+  <div *ngIf="showAnalytics" class="modal-overlay" (click)="showAnalytics = false">
+    <div class="modal-content" style="width:600px; padding:0;" (click)="$event.stopPropagation()">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Dashboard Metrics</h2>
+         <button mat-icon-button (click)="showAnalytics = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <app-board-analytics *ngIf="board" [board]="board" [allCards]="getAllCards()"></app-board-analytics>
+    </div>
+  </div>
+
+  <div *ngIf="showArchive" class="modal-overlay" (click)="showArchive = false">
+    <div class="modal-content" style="width:600px; padding:0;" (click)="$event.stopPropagation()">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Archive Manager</h2>
+         <button mat-icon-button (click)="showArchive = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <app-archive-manager 
+         [archivedCards]="getArchivedCards()" 
+         [archivedLists]="getArchivedLists()"
+         (restoreCard)="restoreCard($event)"
+         (restoreList)="restoreList($event)">
+      </app-archive-manager>
+    </div>
+  </div>
+
 </div>

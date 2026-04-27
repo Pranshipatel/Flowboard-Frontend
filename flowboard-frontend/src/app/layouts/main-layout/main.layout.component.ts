@@ -8,9 +8,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { CardService } from '../../core/services/card.service';
 import { NotificationCenterComponent } from '../../pages/notification/notificaton-center/notificaton-center.component';
 import * as AuthSelectors from '../../store/auth/auth.selectors';
 import * as AuthActions from '../../store/auth/auth.actions';
@@ -31,6 +33,7 @@ export class MainLayoutComponent implements OnInit {
   readonly authService    = inject(AuthService);
   private store           = inject(Store);
   private paymentService  = inject(PaymentService);
+  private cardService     = inject(CardService);
   private router          = inject(Router);
 
   user$: Observable<UserProfile | null> = this.store.select(AuthSelectors.selectUser);
@@ -39,20 +42,24 @@ export class MainLayoutComponent implements OnInit {
   // Search Implementation
   searchQuery = '';
   isSearchOpen = false;
+  isSearching = false;
+  searchSubject = new Subject<string>();
   
   mockSearchData = [
     { type: 'Context', name: 'Dashboard', icon: 'grid_view', route: '/dashboard' },
     { type: 'Context', name: 'Profile Settings', icon: 'settings', route: '/profile' },
-    { type: 'Context', name: 'Calendar Overview', icon: 'calendar_month', route: '/calendar' },
-    { type: 'Workspace', name: 'Product Launch 2026', icon: 'assessment', route: '/dashboard' },
-    { type: 'Workspace', name: 'Engineering Roadmap', icon: 'build', route: '/dashboard' },
-    { type: 'Board', name: 'Sprint 5 Tasks', icon: 'view_kanban', route: '/dashboard' },
+    { type: 'Context', name: 'Calendar Overview', icon: 'calendar_month', route: '/calendar' }
   ];
 
-  get filteredSearchResults() {
-    if (!this.searchQuery.trim()) return [];
-    const q = this.searchQuery.toLowerCase();
-    return this.mockSearchData.filter(item => item.name.toLowerCase().includes(q));
+  filteredSearchResults: any[] = [...this.mockSearchData];
+
+  onSearchChange(val: string) {
+    this.searchQuery = val;
+    if (!val.trim()) {
+       this.filteredSearchResults = [...this.mockSearchData];
+    } else {
+       this.searchSubject.next(val);
+    }
   }
 
   closeSearch() {
@@ -77,8 +84,31 @@ export class MainLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(AuthActions.getProfile());
-    this.paymentService.getSubscription().subscribe();
+    const userId = this.authService.getUserId();
+    this.paymentService.getSubscriptionStatus(userId).subscribe();
     this.isDarkMode = document.body.classList.contains('dark');
+    
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        this.isSearching = true;
+        return this.cardService.globalSearch(query).pipe(
+          catchError(() => of([]))
+        );
+      })
+    ).subscribe(cards => {
+      this.isSearching = false;
+      const dynamicResults = cards.map(c => ({
+        type: 'Task Card',
+        name: c.title,
+        icon: 'task_alt',
+        route: `/board/${c.boardId}`
+      }));
+      // Filter the local mock data
+      const local = this.mockSearchData.filter(item => item.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      this.filteredSearchResults = [...local, ...dynamicResults];
+    });
   }
 
   toggleTheme() {

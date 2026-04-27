@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { subscriptionGuard } from './core/guards/subscription.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -46,6 +47,7 @@ export const routes: Routes = [
       },
       {
         path: 'notifications',
+        canActivate: [subscriptionGuard],
         loadComponent: () => import('./pages/notification/notificaton-center/notificaton-center.component').then(m => m.NotificationCenterComponent)
       },
       {
@@ -60,18 +62,10 @@ export const routes: Routes = [
         path: 'admin',
         loadComponent: () => import('./pages/admin/admin-panel.component').then(m => m.AdminPanelComponent)
       },
-    //   {
-    //     path: 'pricing',
-    //     loadComponent: () => import('./pages/payment').then(m => m.PricingComponent)
-    //   },
-    //   {
-    //     path: 'payment/success',
-    //     loadComponent: () => import('./pages/payment/payment-success/payment-success.component').then(m => m.PaymentSuccessComponent)
-    //   },
-    //   {
-    //     path: 'payment/cancel',
-    //     loadComponent: () => import('./pages/payment/payment-cancel/payment-cancel.component').then(m => m.PaymentCancelComponent)
-    //   }
+      {
+        path: 'upgrade',
+        loadComponent: () => import('./pages/payment/upgrade/upgrade.component').then(m => m.UpgradeComponent)
+      }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

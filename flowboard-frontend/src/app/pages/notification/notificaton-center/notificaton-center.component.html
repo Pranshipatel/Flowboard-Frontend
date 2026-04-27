@@ -12,7 +12,16 @@
   </div>
 
   <div class="notif-scroll-area custom-scrollbar max-h-[400px] overflow-y-auto min-w-[320px]">
-    @if ((notifications$ | async); as notifications) {
+    
+    <div *ngIf="!isPremium" class="flex flex-col items-center justify-center p-8 text-center bg-indigo-50/50">
+      <mat-icon class="text-5xl text-indigo-500 mb-4 w-12 h-12">workspace_premium</mat-icon>
+      <h3 class="font-bold text-slate-800 m-0 mb-2">Upgrade to Premium</h3>
+      <p class="text-xs text-slate-500 mb-6">Unlock advanced notifications, unlimited boards, and premium support.</p>
+      <button mat-flat-button class="bg-indigo-600 text-white !rounded-full px-6 py-1" routerLink="/upgrade">Upgrade Now</button>
+    </div>
+
+    <ng-container *ngIf="isPremium">
+      @if ((notifications$ | async); as notifications) {
       @if (notifications.length === 0) {
         <div class="flex flex-col items-center justify-center p-8 text-slate-400">
           <mat-icon class="text-4xl w-10 h-10 mb-2 opacity-20">notifications_none</mat-icon>
@@ -37,7 +46,8 @@
           </div>
         </div>
       }
-    }
+      }
+    </ng-container>
   </div>
 
   <div class="notif-footer p-2 text-center border-t">

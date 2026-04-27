@@ -61,17 +61,19 @@
       <div class="search-container">
         <mat-icon class="search-icon">search</mat-icon>
         <input type="text" placeholder="Search Tasks, People, Projects" class="search-input"
-               [(ngModel)]="searchQuery"
+               [ngModel]="searchQuery"
+               (ngModelChange)="onSearchChange($event)"
                (focus)="isSearchOpen = true"
                (blur)="closeSearch()" />
                
         <!-- Search Dropdown Overlay -->
         <div class="search-dropdown" *ngIf="isSearchOpen && searchQuery.trim().length > 0">
-           <div class="search-dropdown-header">
+           <div class="search-dropdown-header" style="display: flex; justify-content: space-between; align-items: center;">
               <h3>Search Results</h3>
+              <mat-icon *ngIf="isSearching" class="spin" style="font-size: 16px; color: var(--primary);">autorenew</mat-icon>
            </div>
            
-           <div class="search-results-list" *ngIf="filteredSearchResults.length > 0">
+           <div class="search-results-list" *ngIf="!isSearching && filteredSearchResults.length > 0">
               <div class="search-result-item" *ngFor="let result of filteredSearchResults" (click)="navigateToResult(result.route)">
                  <div class="result-icon bg-blue-50 text-primary">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">{{ result.icon }}</mat-icon>
@@ -84,7 +86,7 @@
               </div>
            </div>
            
-           <div class="search-empty-state" *ngIf="filteredSearchResults.length === 0">
+           <div class="search-empty-state" *ngIf="!isSearching && filteredSearchResults.length === 0">
               <mat-icon class="text-slate-300 mb-2" style="font-size:32px; width:32px; height:32px;">search_off</mat-icon>
               <p>No results found for "{{ searchQuery }}"</p>
               <span>Try checking spelling or generic terms like 'profile'</span>
@@ -93,6 +95,11 @@
       </div>
 
       <div class="nav-right">
+        <!-- Upgrade Button for Free Users -->
+        <button *ngIf="isFreeUser()" class="upgrade-nav-btn" routerLink="/upgrade">
+           <mat-icon>workspace_premium</mat-icon> Upgrade
+        </button>
+        
         <app-notification-center></app-notification-center>
         <button class="add-global-btn"><mat-icon>add</mat-icon></button>
         <div class="avatar-sm" style="cursor: pointer" routerLink="/profile">

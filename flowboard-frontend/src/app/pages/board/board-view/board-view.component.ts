@@ -20,6 +20,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { BoardService } from '../../../core/services/board.service';
 import { ListService } from '../../../core/services/list.service';
 import { CardService } from '../../../core/services/card.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { Board } from '../../../core/models/board.model';
 import { TaskList } from '../../../core/models/list.model';
 import { Card } from '../../../core/models/card.model';
@@ -56,6 +57,7 @@ export class BoardViewComponent implements OnInit {
   private boardService = inject(BoardService);
   private listService  = inject(ListService);
   private cardService  = inject(CardService);
+  private paymentService = inject(PaymentService);
   private snack        = inject(MatSnackBar);
   private dialog       = inject(MatDialog);
 
@@ -74,6 +76,7 @@ export class BoardViewComponent implements OnInit {
   
   showAnalytics = false;
   showArchive   = false;
+  isPremium     = false;
 
   boardMembers: Array<{ userId: number; displayName?: string }> = [];
 
@@ -85,6 +88,13 @@ export class BoardViewComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.store.dispatch(BoardActions.selectBoard({ id }));
     
+    // Check Subscription
+    this.paymentService.subscriptionStatus
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => {
+        this.isPremium = status === 'PREMIUM' || status === 'PRO' || status === 'BUSINESS';
+      });
+
     // Subscribe to loading state
     this.store.select(selectBoardLoading)
       .pipe(takeUntil(this.destroy$))
