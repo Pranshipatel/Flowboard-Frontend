@@ -1,0 +1,102 @@
+<div class="dash-canvas">
+  <div class="dash-content">
+    
+    <div class="header-section">
+      <div>
+        <h1 class="greeting">Welcome, {{ currentUser?.fullName }}</h1>
+        <p class="subtitle">Here's what's happening with your projects today.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <!-- Plan badge in header -->
+        <div *ngIf="isPaidUser" class="plan-pill plan-pill--premium">
+          <mat-icon style="font-size:16px;width:16px;height:16px;color:#fde68a">workspace_premium</mat-icon>
+          Premium
+        </div>
+        <div *ngIf="!isPaidUser" class="plan-pill plan-pill--free" routerLink="/upgrade" style="cursor:pointer">
+          <mat-icon style="font-size:14px;width:14px;height:14px">lock</mat-icon>
+          Free Plan
+        </div>
+        <button class="btn-primary" (click)="tryCreateWorkspace()">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">add</mat-icon> New Workspace
+        </button>
+      </div>
+    </div>
+
+    <!-- Upgrade Banner for Free users -->
+    <div *ngIf="!isPaidUser" class="upgrade-banner" routerLink="/upgrade">
+      <mat-icon>rocket_launch</mat-icon>
+      <div>
+        <strong>Unlock Boards, Cards &amp; Notifications</strong>
+        <span>You're on the Free plan — upgrade once for lifetime Premium access.</span>
+      </div>
+      <button class="upgrade-banner-btn">Upgrade to Premium →</button>
+    </div>
+
+    <!-- Create Inline Form -->
+    <div *ngIf="showCreateForm" class="create-card">
+      <h3>Create Workspace</h3>
+      <form [formGroup]="createForm" (ngSubmit)="createWorkspace()" class="py-4">
+        <div class="form-row">
+           <div class="flex-1">
+             <label class="custom-label">Workspace Name</label>
+             <input class="input-base" formControlName="name" placeholder="e.g. Design Team" />
+           </div>
+           <div>
+             <label class="custom-label">Visibility</label>
+             <select class="input-base" formControlName="visibility">
+               <option value="PRIVATE">Private</option>
+               <option value="PUBLIC">Public</option>
+             </select>
+           </div>
+        </div>
+        <div class="mt-4">
+           <label class="custom-label">Description</label>
+           <input class="input-base" formControlName="description" placeholder="Optional details..." />
+        </div>
+        <div class="flex gap-2 mt-4">
+           <button class="btn-primary" type="submit" [disabled]="creating || createForm.invalid">Create</button>
+           <button class="btn-secondary" type="button" (click)="showCreateForm = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Load Skeletons -->
+    <div *ngIf="loading" class="grid-layout mt-6">
+       <div class="ws-card-sk sk-bounce" *ngFor="let i of [1,2,3]"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && workspaces.length === 0 && !showCreateForm" class="empty-state">
+      <div class="empty-icon"><mat-icon>folder_open</mat-icon></div>
+      <h3>No Workspaces Found</h3>
+      <p>Get started by creating your first workspace.</p>
+      <button class="btn-primary mt-4" (click)="tryCreateWorkspace()">Create Workspace</button>
+    </div>
+
+    <!-- Workspaces List -->
+    <div *ngIf="!loading && workspaces.length > 0" class="ws-section mt-6">
+      <h2 class="section-title">Your Workspaces</h2>
+      
+      <div class="grid-layout">
+        <div class="ws-card" *ngFor="let ws of workspaces" (click)="openWorkspace(ws.id)">
+          <div class="ws-header">
+             <div class="ws-avatar">{{ getInitials(ws.name) }}</div>
+             <button mat-icon-button [matMenuTriggerFor]="wsMenu" (click)="$event.stopPropagation()"><mat-icon>more_vert</mat-icon></button>
+          </div>
+          <mat-menu #wsMenu="matMenu">
+             <button mat-menu-item style="color: #DC2626;" (click)="deleteWorkspace(ws.id, $event)">
+               <mat-icon style="color: #DC2626;">delete</mat-icon> Delete Workspace
+             </button>
+          </mat-menu>
+          <h3 class="ws-name">{{ ws.name }}</h3>
+          <p class="ws-desc">{{ ws.description || 'No description provided.' }}</p>
+          <div class="ws-footer">
+             <span class="badge">{{ ws.visibility | titlecase }}</span>
+             <span class="text-sm font-medium text-gray-500">{{ ws.members.length }} members</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

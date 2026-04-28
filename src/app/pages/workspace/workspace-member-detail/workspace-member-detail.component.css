@@ -1,0 +1,63 @@
+.member-detail-page { max-width: 900px; margin: 0 auto; padding: 40px 32px; }
+
+/* Breadcrumb */
+.breadcrumb { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.back-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid #E2E8F0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748B; flex-shrink: 0; transition: all 0.2s; }
+.back-btn:hover { background: #F1F5F9; color: #0F172A; }
+.breadcrumb-path { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #64748B; }
+.bc-ws { color: var(--primary); cursor: pointer; }
+.bc-sep { font-size: 16px; width: 16px; height: 16px; color: #CBD5E1; }
+
+/* Loading */
+.loading-state { display: flex; flex-direction: column; align-items: center; padding: 80px 24px; gap: 16px; color: #64748B; }
+
+/* Hero Card */
+.hero-card { display: flex; align-items: center; gap: 24px; background: white; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(0,0,0,0.06); padding: 32px; margin-bottom: 24px; position: relative; }
+.hero-avatar { width: 88px; height: 88px; border-radius: 22px; color: white; font-size: 28px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.15); overflow: hidden; }
+.hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.hero-info { flex: 1; min-width: 0; }
+.hero-name { margin: 0 0 10px; font-size: 26px; font-weight: 900; color: #0F172A; line-height: 1.1; }
+.hero-sub { font-size: 12px; color: #94A3B8; margin: 6px 0 0; }
+.hero-actions { position: absolute; top: 24px; right: 24px; }
+
+/* Role Chip */
+.role-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; width: fit-content; }
+.role-chip mat-icon { font-size: 13px; width: 13px; height: 13px; }
+.role-chip.role-owner { background: #FEF3C7; color: #B45309; }
+.role-chip.role-admin { background: #EEF2FF; color: #4338CA; }
+.role-chip.role-member, .role-chip.role-– { background: #F1F5F9; color: #475569; }
+.role-chip.inline { font-size: 11px; }
+
+/* Info Grid */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.info-card { background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 24px; }
+.info-card-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #F1F5F9; }
+.info-card-title mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--primary); }
+.info-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F8FAFC; }
+.info-row:last-child { border-bottom: none; }
+.info-icon-wrap { width: 32px; height: 32px; border-radius: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.info-icon-wrap mat-icon { font-size: 16px; width: 16px; height: 16px; color: #64748B; }
+.info-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+.info-value { font-size: 14px; font-weight: 600; color: #0F172A; word-break: break-all; }
+
+/* Danger */
+.danger-section { margin-top: 8px; }
+.danger-card { display: flex; align-items: center; gap: 24px; background: #FFF5F5; border: 1px solid #FED7D7; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(239,68,68,0.08); }
+.danger-left { flex: 1; }
+.danger-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #DC2626; margin-bottom: 8px; }
+.danger-title mat-icon { font-size: 18px; width: 18px; height: 18px; }
+.danger-card p { font-size: 13px; color: #64748B; margin: 0; line-height: 1.6; }
+
+/* Remove Button */
+.btn-remove { display: flex; align-items: center; gap: 8px; background: #DC2626; color: white; border: none; border-radius: 12px; padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 4px 12px rgba(220,38,38,0.25); }
+.btn-remove:hover { background: #B91C1C; box-shadow: 0 6px 16px rgba(220,38,38,0.35); }
+.btn-remove:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-remove mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+@media (max-width: 768px) {
+  .member-detail-page { padding: 24px 16px; }
+  .hero-card { flex-direction: column; text-align: center; }
+  .hero-actions { position: static; margin-top: 12px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .danger-card { flex-direction: column; }
+}

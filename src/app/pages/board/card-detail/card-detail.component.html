@@ -1,0 +1,148 @@
+<div class="premium-modal" (click)="$event.stopPropagation()">
+  
+  <!-- Beautiful Dynamic Hero Cover -->
+  <div class="card-hero" [style.background]="card.coverColor || 'linear-gradient(135deg, #1EA7C5, #2563EB)'">
+    <div class="hero-overlay"></div>
+    <div class="hero-actions">
+      <button class="icon-btn-light" (click)="close()"><mat-icon>close</mat-icon></button>
+    </div>
+  </div>
+
+  <div class="card-scroll-body">
+    
+    <!-- Title Area -->
+    <div class="title-header">
+      <div class="title-icon"><mat-icon>task_alt</mat-icon></div>
+      <div class="title-content">
+        <h1 *ngIf="!editTitle" class="dynamic-title" (click)="editTitle = true; editedTitle = card.title">
+          {{ card.title }}
+        </h1>
+        <div *ngIf="editTitle" class="relative-form">
+          <input [(ngModel)]="editedTitle" (keydown.enter)="saveTitle()" (keydown.escape)="editTitle = false"
+                 class="huge-input" autofocus />
+          <div class="input-actions mt-2" style="display: flex; gap: 8px;">
+            <button class="btn-primary" style="height: 32px;" (click)="saveTitle()" [disabled]="saving">Save</button>
+            <button class="btn-secondary" style="height: 32px;" (click)="editTitle = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Subheader -->
+    <div class="badges-row">
+       <span class="rich-badge status-{{card.status}}">
+          <span class="dot"></span> {{ statusLabels[card.status] }}
+       </span>
+       <span *ngIf="isOverdue()" class="rich-badge bg-danger text-white">
+          <mat-icon style="font-size:14px;width:14px;height:14px;">warning</mat-icon> Overdue
+       </span>
+    </div>
+
+    <div class="canvas-split">
+      
+      <!-- MAIN LEFT CONTENT -->
+      <div class="canvas-left">
+        
+        <!-- Description Block -->
+        <div class="content-block">
+          <div class="block-header">
+            <div class="block-title"><mat-icon>subject</mat-icon> Description</div>
+            <button class="btn-ghost" *ngIf="!editMode" (click)="editMode = true; editedDescription = card.description || ''">Edit Text</button>
+          </div>
+          
+          <div class="block-body" *ngIf="!editMode">
+            <div class="desc-renderer" [class.empty]="!card.description" (click)="!card.description && (editMode = true)">
+               {{ card.description || 'Add a more detailed description...' }}
+            </div>
+          </div>
+          
+          <div class="block-body" *ngIf="editMode">
+             <textarea [(ngModel)]="editedDescription" rows="5" class="rich-textarea" placeholder="Add some details..."></textarea>
+             <div class="flex gap-2 mt-3">
+                <button class="btn-primary" (click)="saveDescription()" [disabled]="saving">Save Details</button>
+                <button class="btn-secondary" (click)="editMode = false">Cancel</button>
+             </div>
+          </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="content-block mt-8">
+          <div class="block-header">
+             <div class="block-title"><mat-icon>schedule</mat-icon> Activity</div>
+          </div>
+          <div class="timeline-container">
+             <div *ngIf="loadingActivity" class="loading-state"><div class="sk-bounce activity-sk"></div></div>
+             <div *ngIf="!loadingActivity && activity.length === 0" class="empty-state">No recorded activity yet.</div>
+             
+             <div class="timeline-item" *ngFor="let log of activity">
+                <div class="timeline-avatar bg-primary text-white">{{ log.actorId }}</div>
+                <div class="timeline-content">
+                   <p class="timeline-text"><span class="actor">User #{{ log.actorId }}</span> {{ log.description }}</p>
+                   <span class="timeline-time">{{ log.createdAt | date:'MMM d, h:mm a' }}</span>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR (Properties) -->
+      <div class="canvas-right">
+        
+        <div class="property-group">
+           <label class="prop-label">Assignee</label>
+           <!-- Assignee List -->
+           <div class="selector-list">
+              <button class="selector-item" *ngFor="let m of boardMembers" (click)="assignTo(m.userId)"
+                      [class.active]="card.assigneeId === m.userId">
+                  <div class="member-mini-avatar" [style.background]="m.avatarUrl ? 'url('+m.avatarUrl+') center/cover' : 'var(--primary)'">
+                     {{ m.avatarUrl ? '' : (m.displayName ? m.displayName[0] : m.userId) }}
+                  </div>
+                  {{ m.displayName || 'User #' + m.userId }}
+              </button>
+              <button *ngIf="card.assigneeId" class="clear-btn" (click)="assignTo(null)">Remove Assigned</button>
+           </div>
+        </div>
+
+        <div class="property-group">
+           <label class="prop-label">Priority</label>
+           <div class="priority-grid">
+              <button class="priority-item" *ngFor="let p of priorities" (click)="setPriority(p)"
+                      [style.border-color]="card.priority === p ? priorityColors[p] : 'transparent'"
+                      [style.background]="card.priority === p ? (priorityColors[p]+'15') : '#F8FAFC'">
+                 <span class="p-dot" [style.background]="priorityColors[p]"></span> {{ p | titlecase }}
+              </button>
+           </div>
+        </div>
+
+        <div class="property-group">
+           <label class="prop-label">Due Date</label>
+           <div class="date-wrapper">
+              <input type="date" [(ngModel)]="newDueDate" class="date-input" [class.error]="isOverdue()" />
+           </div>
+           <div class="flex gap-2 mt-2">
+              <button class="btn-primary flex-1" style="height:32px" (click)="saveDueDate()" [disabled]="saving">Set Date</button>
+              <button *ngIf="card.dueDate" class="btn-secondary flex-1" style="height:32px" (click)="clearDueDate()">Clear</button>
+           </div>
+        </div>
+
+        <div class="property-divider"></div>
+
+        <div class="property-group">
+           <label class="prop-label">Appearance</label>
+           <div class="picker-wrapper">
+              <app-color-picker [selectedColor]="card.coverColor || null" (colorChange)="updateCoverColor($event)"></app-color-picker>
+              <span style="font-size:12px; color:#64748B; padding-left:8px;">Cover Style</span>
+           </div>
+        </div>
+
+        <div class="property-group mt-6">
+           <button class="action-btn" (click)="copyCard()"><mat-icon>content_copy</mat-icon> Make a Copy</button>
+           <button class="action-btn warning" (click)="archiveCard()"><mat-icon>archive</mat-icon> Archive Card</button>
+           <button class="action-btn danger" (click)="deleteCard()"><mat-icon>delete</mat-icon> Delete Permanently</button>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+</div>

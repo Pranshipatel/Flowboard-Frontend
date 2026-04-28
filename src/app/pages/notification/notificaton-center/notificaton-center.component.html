@@ -1,0 +1,70 @@
+<button class="notif-btn" [matMenuTriggerFor]="notifMenu" [matBadge]="unreadCount" matBadgeColor="warn" [matBadgeHidden]="unreadCount === 0 || !isPremium">
+  <mat-icon>notifications</mat-icon>
+</button>
+
+<mat-menu #notifMenu="matMenu" class="notif-menu custom-scrollbar" xPosition="before">
+  <div class="notif-header p-4 border-b flex justify-between items-center bg-slate-50 sticky top-0 z-10" (click)="$event.stopPropagation()">
+    <h3 class="m-0 font-bold text-slate-800">Notifications</h3>
+    
+    <div class="flex gap-2" *ngIf="isPremium">
+      <button mat-icon-button matTooltip="Mark all as read" class="small-icon-btn text-slate-500" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">done_all</mat-icon>
+      </button>
+      <button mat-icon-button matTooltip="Clear read notifications" class="small-icon-btn text-slate-500" (click)="deleteAllRead()">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">delete_sweep</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="notif-scroll-area custom-scrollbar max-h-[400px] overflow-y-auto min-w-[350px]">
+    
+    <div *ngIf="!isPremium" class="flex flex-col items-center justify-center p-8 text-center bg-indigo-50/50">
+      <mat-icon class="text-5xl text-indigo-500 mb-4 w-12 h-12">workspace_premium</mat-icon>
+      <h3 class="font-bold text-slate-800 m-0 mb-2">Upgrade to Premium</h3>
+      <p class="text-xs text-slate-500 mb-6">Unlock advanced notifications, unlimited boards, and premium support.</p>
+      <button mat-flat-button class="bg-indigo-600 text-white !rounded-full px-6 py-1" routerLink="/upgrade">Upgrade Now</button>
+    </div>
+
+    <ng-container *ngIf="isPremium">
+      
+      <div *ngIf="isLoading" class="flex justify-center p-6">
+        <mat-spinner diameter="30"></mat-spinner>
+      </div>
+
+      <div *ngIf="!isLoading && notifications.length === 0" class="flex flex-col items-center justify-center p-8 text-slate-400">
+        <mat-icon class="text-4xl w-10 h-10 mb-2 opacity-20">notifications_none</mat-icon>
+        <p class="m-0 text-sm">You're all caught up!</p>
+      </div>
+      
+      <div *ngIf="!isLoading">
+        <div *ngFor="let n of notifications" 
+             class="notif-item p-3 border-b hover:bg-slate-50 cursor-pointer flex gap-3 group relative" 
+             [class.bg-blue-50/30]="!n.isRead"
+             (click)="markAsRead(n)">
+             
+          <div class="notif-icon-wrapper rounded-full flex items-center justify-center bg-indigo-100 text-indigo-600 h-10 w-10 shrink-0">
+             <mat-icon style="font-size: 20px; width: 20px; height: 20px;">{{ getTypeIcon(n.type) }}</mat-icon>
+          </div>
+          
+          <div class="notif-content flex-1 pr-6">
+            <p class="m-0 text-sm text-slate-800" [class.font-semibold]="!n.isRead">{{ n.message }}</p>
+            <p class="m-0 text-xs text-slate-400 mt-1">{{ n.createdAt | date:'short' }}</p>
+          </div>
+
+          <!-- Unread indicator dot -->
+          <div *ngIf="!n.isRead" class="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500"></div>
+          
+          <!-- Delete button (shows on hover) -->
+          <button mat-icon-button class="delete-notif-btn absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500" 
+                  (click)="deleteNotification($event, n.id)">
+            <mat-icon style="font-size: 18px; width: 18px; height: 18px;">delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="notif-footer p-2 text-center border-t bg-slate-50 sticky bottom-0 z-10" *ngIf="isPremium">
+    <button mat-button color="primary" class="w-full text-xs" routerLink="/notifications">View All Notifications</button>
+  </div>
+</mat-menu>

@@ -1,0 +1,190 @@
+<div class="upgrade-page">
+
+  <!-- Animated background orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Already Premium Banner -->
+  <div class="already-premium-banner" *ngIf="isPremium">
+    <mat-icon>verified</mat-icon>
+    <div>
+      <strong>You're on Premium! 🎉</strong><br/>
+      <span style="font-size:13px;font-weight:400;opacity:0.8">You have full access to all Flowboard features.</span>
+    </div>
+    <button class="btn-go-back" (click)="goBack()">← Dashboard</button>
+  </div>
+
+  <div class="upgrade-wrapper" *ngIf="!isPremium">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="badge-pill">
+        <mat-icon>auto_awesome</mat-icon> Limited Time — Lifetime Access
+      </div>
+      <h1 class="hero-title">
+        Ship Faster with<br/><span class="gradient-text">Flowboard Premium</span>
+      </h1>
+      <p class="hero-sub">
+        Boards, cards, real-time notifications and team collaboration — all unlocked for a single one-time payment.
+      </p>
+      <div class="hero-meta">
+        <span class="stars">★★★★★</span>
+        <strong>4.9 / 5</strong>&nbsp;·&nbsp;Trusted by 2,000+ teams
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-num">2K+</span>
+        <span class="stat-label">Teams Using Flowboard</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">99.9%</span>
+        <span class="stat-label">Uptime SLA</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">Boards &amp; Cards</span>
+      </div>
+    </div>
+
+    <!-- Comparison Cards -->
+    <div class="plans-row">
+
+      <!-- FREE -->
+      <div class="plan-card plan-free">
+        <div class="plan-label">Free</div>
+        <div class="plan-price">
+          <span class="currency">₹</span>
+          <span class="price-num">0</span>
+          <span class="price-period">forever</span>
+        </div>
+        <ul class="feature-list">
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Unlimited Workspaces</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Add &amp; Manage Members</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Workspace Settings</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Boards &amp; Project Views</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Lists &amp; Cards</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Real-time Notifications</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Analytics Dashboard</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Priority Support</li>
+          <li class="feat-no"><mat-icon>cancel</mat-icon> Custom Workflows</li>
+        </ul>
+        <button class="btn-free" disabled>Current Plan</button>
+      </div>
+
+      <!-- PREMIUM -->
+      <div class="plan-card plan-premium">
+        <div class="popular-badge">⚡ Most Popular</div>
+        <div class="plan-label premium-label">Premium</div>
+        <div class="plan-price">
+          <span class="currency" style="color:#A5B4FC">₹</span>
+          <span class="price-num premium-price">999</span>
+          <span class="price-period">one-time</span>
+        </div>
+        <ul class="feature-list">
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Everything in Free</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Unlimited Boards</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Unlimited Lists &amp; Cards</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Real-time Notifications</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Analytics Dashboard</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Drag &amp; Drop Task Board</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Custom Card Priorities</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Archive &amp; Restore</li>
+          <li class="feat-yes"><mat-icon>check_circle</mat-icon> Priority 24/7 Support</li>
+        </ul>
+
+        <div class="price-highlight">
+          <mat-icon>bolt</mat-icon>
+          Pay once · Use forever · Free updates included
+        </div>
+
+        <button class="btn-upgrade" (click)="initiatePayment()" [disabled]="isLoading" id="upgrade-now-btn">
+          <mat-spinner *ngIf="isLoading" diameter="20" style="display:inline-block;margin-right:8px;"></mat-spinner>
+          <mat-icon *ngIf="!isLoading">rocket_launch</mat-icon>
+          {{ isLoading ? 'Processing…' : 'Upgrade Now — ₹999' }}
+        </button>
+
+        <div class="trust-row">
+          <span><mat-icon>lock</mat-icon> Razorpay Secured</span>
+          <span><mat-icon>shield</mat-icon> 100% Safe</span>
+          <span><mat-icon>verified_user</mat-icon> Instant Access</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Social Proof -->
+    <p class="section-label">What Teams Are Saying</p>
+    <div class="social-proof">
+      <div class="testimonial">
+        <div class="avatar-wrap" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">RK</div>
+        <div class="testimonial-text">
+          <div class="stars-sm">★★★★★</div>
+          <p>"Flowboard Premium transformed how our team manages projects. Worth every rupee!"</p>
+          <span>Rahul K. — Product Manager</span>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="avatar-wrap" style="background:linear-gradient(135deg,#EC4899,#F97316)">AS</div>
+        <div class="testimonial-text">
+          <div class="stars-sm">★★★★★</div>
+          <p>"The board view and notifications alone justify the upgrade. Instantly more productive."</p>
+          <span>Ananya S. — Team Lead</span>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="avatar-wrap" style="background:linear-gradient(135deg,#10B981,#0EA5E9)">VP</div>
+        <div class="testimonial-text">
+          <div class="stars-sm">★★★★★</div>
+          <p>"One-time payment for lifetime access? No brainer. Highly recommended to every PM!"</p>
+          <span>Vikram P. — Engineering Manager</span>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="avatar-wrap" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">NR</div>
+        <div class="testimonial-text">
+          <div class="stars-sm">★★★★★</div>
+          <p>"Switched from Trello and never looked back. The custom priorities and drag-drop are amazing."</p>
+          <span>Nisha R. — Startup Founder</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+      <h3><mat-icon>quiz</mat-icon> Frequently Asked Questions</h3>
+      <div class="faq-item">
+        <mat-icon class="faq-icon">help_outline</mat-icon>
+        <div>
+          <strong>Is this really a one-time payment?</strong>
+          <p>Yes! Pay ₹999 once and get lifetime access — including all future updates and new features.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <mat-icon class="faq-icon">help_outline</mat-icon>
+        <div>
+          <strong>When does Premium activate?</strong>
+          <p>Instantly after payment. No waiting — your board access unlocks within seconds.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <mat-icon class="faq-icon">help_outline</mat-icon>
+        <div>
+          <strong>Is my payment secure?</strong>
+          <p>All transactions are processed via Razorpay with bank-grade 256-bit encryption.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <mat-icon class="faq-icon">help_outline</mat-icon>
+        <div>
+          <strong>Can I share Premium with my team?</strong>
+          <p>Premium is per-account. Each team member needs their own upgrade to access board features.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

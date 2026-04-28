@@ -1,0 +1,22 @@
+<div class="card-create-form">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <textarea
+      formControlName="title"
+      class="card-input"
+      placeholder="Enter card title..."
+      rows="3"
+      (keydown.enter)="$event.preventDefault(); onSubmit()"
+      (keydown.escape)="cancel()"
+      autofocus>
+    </textarea>
+    <div class="card-create-actions">
+      <button mat-flat-button color="primary" type="submit"
+              [disabled]="loading || form.invalid">
+        {{ loading ? 'Adding...' : 'Add card' }}
+      </button>
+      <button mat-icon-button type="button" (click)="cancel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </form>
+</div>

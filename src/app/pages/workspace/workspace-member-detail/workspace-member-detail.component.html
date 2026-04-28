@@ -1,0 +1,116 @@
+<div class="member-detail-page">
+
+  <div class="breadcrumb">
+    <button class="back-btn" (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+    <span class="breadcrumb-path">
+      <span class="bc-ws" *ngIf="workspace">{{ workspace.name }}</span>
+      <mat-icon class="bc-sep">chevron_right</mat-icon>
+      <span>Members</span>
+      <mat-icon class="bc-sep">chevron_right</mat-icon>
+      <span>{{ userProfile?.fullName ?? ('User #' + targetUserId) }}</span>
+    </span>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading member details…</p>
+  </div>
+
+  <div *ngIf="!loading" class="content-wrap">
+
+    <!-- Hero Card -->
+    <div class="hero-card">
+      <div class="hero-avatar" [style.background]="getAvatarBg(targetUserId)">
+        <span *ngIf="!userProfile?.avatarUrl">{{ userProfile ? getInitials(userProfile.fullName) : '#' + targetUserId }}</span>
+        <img *ngIf="userProfile?.avatarUrl" [src]="userProfile!.avatarUrl" [alt]="userProfile!.fullName" />
+      </div>
+      <div class="hero-info">
+        <h1 class="hero-name">{{ userProfile?.fullName ?? 'User #' + targetUserId }}</h1>
+        <div class="role-chip" [class]="'role-' + memberRole.toLowerCase()">
+          <mat-icon>{{ memberRole === 'OWNER' ? 'star' : (memberRole === 'ADMIN' ? 'shield' : 'person') }}</mat-icon>
+          {{ memberRole }}
+        </div>
+        <p class="hero-sub" *ngIf="isSelf">This is you</p>
+      </div>
+      <div class="hero-actions">
+        <button *ngIf="isOwner && !isSelf && memberRole !== 'OWNER'"
+                class="btn-remove" (click)="removeMember()" [disabled]="removing">
+          <mat-icon>person_remove</mat-icon>
+          {{ removing ? 'Removing…' : 'Remove from Workspace' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title"><mat-icon>account_circle</mat-icon> Profile</div>
+
+        <div class="info-row" *ngIf="userProfile?.fullName">
+          <div class="info-icon-wrap"><mat-icon>badge</mat-icon></div>
+          <div><div class="info-label">Full Name</div><div class="info-value">{{ userProfile!.fullName }}</div></div>
+        </div>
+        <div class="info-row" *ngIf="userProfile?.username">
+          <div class="info-icon-wrap"><mat-icon>alternate_email</mat-icon></div>
+          <div><div class="info-label">Username</div><div class="info-value">@{{ userProfile!.username }}</div></div>
+        </div>
+        <div class="info-row" *ngIf="userProfile?.email">
+          <div class="info-icon-wrap"><mat-icon>mail</mat-icon></div>
+          <div><div class="info-label">Email</div><div class="info-value">{{ userProfile!.email }}</div></div>
+        </div>
+        <div class="info-row" *ngIf="userProfile?.createdAt">
+          <div class="info-icon-wrap"><mat-icon>calendar_today</mat-icon></div>
+          <div><div class="info-label">Joined Platform</div><div class="info-value">{{ userProfile!.createdAt | date:'mediumDate' }}</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon-wrap"><mat-icon>fingerprint</mat-icon></div>
+          <div><div class="info-label">User ID</div><div class="info-value">{{ targetUserId }}</div></div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title"><mat-icon>workspaces</mat-icon> Workspace Membership</div>
+
+        <div class="info-row">
+          <div class="info-icon-wrap"><mat-icon>workspaces_outline</mat-icon></div>
+          <div><div class="info-label">Workspace</div><div class="info-value">{{ workspace?.name ?? '–' }}</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon-wrap"><mat-icon>shield</mat-icon></div>
+          <div>
+            <div class="info-label">Role</div>
+            <div class="info-value">
+              <span class="role-chip inline" [class]="'role-' + memberRole.toLowerCase()">{{ memberRole }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon-wrap">
+            <mat-icon>{{ (userProfile?.active ?? true) ? 'check_circle' : 'cancel' }}</mat-icon>
+          </div>
+          <div>
+            <div class="info-label">Account Status</div>
+            <div class="info-value" [style.color]="(userProfile?.active ?? true) ? '#22C55E' : '#EF4444'">
+              {{ (userProfile?.active ?? true) ? 'Active' : 'Inactive' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div *ngIf="isOwner && !isSelf && memberRole !== 'OWNER'" class="danger-section">
+      <div class="danger-card">
+        <div class="danger-left">
+          <div class="danger-title"><mat-icon>warning</mat-icon> Remove from Workspace</div>
+          <p>This will revoke <strong>{{ userProfile?.fullName ?? 'this user' }}</strong>'s access to all boards in <strong>{{ workspace?.name }}</strong>. They can be re-added later.</p>
+        </div>
+        <button class="btn-remove" (click)="removeMember()" [disabled]="removing">
+          <mat-icon>person_remove</mat-icon>
+          {{ removing ? 'Removing…' : 'Remove Member' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

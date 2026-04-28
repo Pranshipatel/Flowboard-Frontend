@@ -1,0 +1,54 @@
+.admin-container {
+  min-height: calc(100vh - 64px);
+}
+
+.stat-card {
+  transition: transform 0.2s;
+  &:hover { transform: translateY(-4px); }
+  
+  &.bg-indigo-600 {
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+  }
+}
+
+::ng-deep .modern-tabs {
+  .mat-mdc-tab-header {
+    margin-bottom: 32px;
+  }
+  .mat-mdc-tab-labels {
+    gap: 24px;
+  }
+  .mdc-tab {
+    padding: 0 8px !important;
+    .mdc-tab__text-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: #94a3b8;
+    }
+    &.mdc-tab--active {
+      .mdc-tab__text-label { color: #4f46e5; }
+    }
+  }
+  .mat-mdc-tab-group-indicator-wrapper {
+    background: #4f46e5;
+    height: 3px;
+    border-radius: 3px;
+  }
+}
+
+.mat-mdc-table {
+  background: transparent;
+}
+
+.mat-mdc-header-row {
+  height: 48px;
+}
+
+.mat-mdc-row {
+  height: 72px;
+  &:hover { background: rgba(248, 250, 252, 0.5); }
+}
+
+.mat-mdc-cell, .mat-mdc-header-cell {
+  border-bottom: 1px solid #f1f5f9;
+}

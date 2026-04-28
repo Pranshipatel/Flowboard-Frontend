@@ -1,0 +1,28 @@
+.card-create-form {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  margin: 0 8px 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 4px 6px;
+  font-family: inherit;
+
+  &::placeholder { color: var(--text-muted); }
+}
+
+.card-create-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}

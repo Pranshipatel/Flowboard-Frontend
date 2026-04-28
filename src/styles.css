@@ -1,0 +1,154 @@
+@import "@angular/material/prebuilt-themes/azure-blue.css";
+@import "tailwindcss";
+
+:root {
+  /* ================== TOKENS FOR DUAL SIDEBAR THEME ================== */
+  
+  /* Primary Sidebar (Far Left - Dark) */
+  --nav-left-bg: #1B2B3C;
+  --nav-left-btn: rgba(255, 255, 255, 0.08);
+  --nav-left-btn-hover: rgba(255, 255, 255, 0.16);
+  --nav-left-active: #1382A8; /* A beautiful teal/cyan accent */
+  --nav-left-text: #Aeb9cC;
+
+  /* Secondary Sidebar (Light) */
+  --nav-sub-bg: #F8F9FA;
+  --nav-sub-text: #475569;
+  --nav-sub-active-bg: #EEF2F6;
+  --nav-sub-active-text: #0F172A;
+
+  /* App Backgrounds & Cards */
+  --bg-app: #FFFFFF;
+  --bg-column: #F4F6F8;
+  --bg-card: #FFFFFF;
+
+  /* Status Colors */
+  --primary: #1EA7C5; /* Match top right button color */
+  --primary-hover: #168BA5;
+  --success: #10B981;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+
+  /* Tags */
+  --tag-blue-bg: #E1F0FF;
+  --tag-blue-text: #2B6CB0;
+  --tag-yellow-bg: #FEF3C7;
+  --tag-yellow-text: #B45309;
+  --tag-red-bg: #FEE2E2;
+  --tag-red-text: #B91C1C;
+  --tag-green-bg: #DCFCE7;
+  --tag-green-text: #15803D;
+
+  /* Borders & Shadows */
+  --border-light: #E2E8F0;
+  --border-strong: #CBD5E1;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-menu: 0 10px 15px -3px rgba(0,0,0,0.1);
+  --shadow-float: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+
+/* ================== GLOBAL HTML SETUP ================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+}
+
+/* Custom modern scrollbars globally */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.3);
+}
+
+/* Material Override (Modernize) */
+.mat-mdc-menu-panel {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-menu) !important;
+  border: 1px solid var(--border-light);
+}
+.mdc-text-field--outlined {
+  --mdc-outlined-text-field-container-shape: 8px;
+  --mdc-outlined-text-field-outline-color: var(--border-strong) !important;
+  --mdc-outlined-text-field-focus-outline-color: var(--primary) !important;
+}
+
+/* Reusable buttons */
+.btn-primary {
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  height: 36px;
+  padding: 0 16px !important;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+/* Global Loading Skeletons for instant feel */
+.sk-bounce {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: sk-loading 1.2s infinite linear;
+}
+@keyframes sk-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Auth Views */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--bg-column);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+  padding: 40px;
+}
+
+.auth-logo { color: var(--primary); font-size: 32px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -1px; margin-bottom: 24px; text-align: center; }
+.auth-title { font-size: 16px; font-weight: 600; color: #475569; margin-bottom: 24px; text-align: center; }
+.custom-label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; margin-top: 12px;}
+.submit-btn { width: 100%; margin-top: 16px; }
+.auth-error { background: #FEF2F2; color: #DC2626; font-size: 14px; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #FCA5A5; }

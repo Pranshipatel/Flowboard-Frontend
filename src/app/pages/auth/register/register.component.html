@@ -1,0 +1,86 @@
+<div class="split-auth-layout">
+  <!-- Left Brand Column -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo">
+        <div class="logo-icon"><mat-icon>assessment</mat-icon></div>
+        <span class="logo-text">FlowBoard</span>
+      </div>
+      <h1 class="brand-heading">Start your journey today.</h1>
+      <p class="brand-subtext">Set up your workspace and bring your team together in one centralized, instantly-loading platform.</p>
+    </div>
+    
+    <!-- Abstract decorative elements -->
+    <div class="abstract-shape shape-1"></div>
+    <div class="abstract-shape shape-2"></div>
+  </div>
+
+  <!-- Right Form Column -->
+  <div class="form-panel">
+    <div class="form-container">
+      <h2 class="auth-heading">Create your account</h2>
+      <p class="auth-subtext">Join FlowBoard for free and start collaborating.</p>
+
+      <div *ngIf="errorMessage" class="error-alert">
+        <mat-icon style="font-size:16px;width:16px;height:16px">error</mat-icon>
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="success-alert">
+        <mat-icon style="font-size:16px;width:16px;height:16px">check_circle</mat-icon>
+        {{ successMessage }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <label class="modern-label">Full Name</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input matInput formControlName="fullName" placeholder="Sarah Mitchell" />
+          <mat-error *ngIf="fullName.hasError('required')">Full name is required</mat-error>
+        </mat-form-field>
+
+        <label class="modern-label">Email address</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input matInput formControlName="email" type="email" placeholder="you@example.com" />
+          <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <div class="w-half pr-2">
+            <label class="modern-label">Username</label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input matInput formControlName="username" placeholder="sarah_dev" />
+              <mat-error *ngIf="username.hasError('required')">Required</mat-error>
+              <mat-error *ngIf="username.hasError('pattern')">Letters/Numbers only</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="w-half pl-2">
+            <label class="modern-label">Password</label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="password.hasError('minlength')">Min 6 characters</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <label class="modern-label">Confirm Password</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input matInput formControlName="confirmPassword" [type]="hidePassword ? 'password' : 'text'" />
+          <mat-error *ngIf="form.hasError('mismatch')">Passwords do not match</mat-error>
+        </mat-form-field>
+
+        <button class="primary-submit-btn" type="submit" [disabled]="loading || form.invalid" style="margin-top: 16px;">
+          <mat-spinner *ngIf="loading" diameter="20" style="margin-right:8px;"></mat-spinner>
+          {{ loading ? 'Creating account...' : 'Create account' }}
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a routerLink="/login">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
