@@ -17,6 +17,7 @@ import { BoardService } from '../../../core/services/board.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { ColorPickerComponent } from '../../../shared/components/color-picker.component';
+import { UpgradePromptComponent } from '../../../shared/components/upgrade-prompt.component';
 import { Workspace, WorkspaceMemberResult } from '../../../core/models/workspace.model';
 import { Board } from '../../../core/models/board.model';
 import { UserProfile } from '../../../core/models/user.model';
@@ -56,6 +57,7 @@ export class WorkspaceDetailComponent implements OnInit {
   showCreateBoard = false;
   creatingBoard   = false;
   isPremium       = false;
+  readonly freeBoardLimit = 2;
 
   userId    = 0;
   activeTab: 'boards' | 'settings' = 'boards';
@@ -72,7 +74,9 @@ export class WorkspaceDetailComponent implements OnInit {
     name:        ['', [Validators.required, Validators.minLength(2)]],
     description: [''],
     background:  ['#4f46e5'],
-    visibility:  ['PRIVATE', Validators.required]
+    visibility:  ['PRIVATE', Validators.required],
+    dueDate:     [''],
+    priority:    ['']
   });
 
   ngOnInit(): void {
@@ -119,7 +123,14 @@ export class WorkspaceDetailComponent implements OnInit {
 
   loadWorkspace(id: number): void {
     this.workspaceService.getById(id).subscribe({
-      next: ws => { this.workspace = ws; this.loading = false; this.loadMembers(); },
+      next: ws => {
+        this.workspace = ws;
+        if (ws.visibility === 'PRIVATE') {
+          this.boardForm.patchValue({ visibility: 'PRIVATE' });
+        }
+        this.loading = false;
+        this.loadMembers();
+      },
       error: () => { this.loading = false; }
     });
   }
@@ -188,18 +199,53 @@ export class WorkspaceDetailComponent implements OnInit {
 
   openMemberDetail(userId: number): void { this.router.navigate(['/workspace', this.workspace!.id, 'member', userId]); }
 
+  tryCreateBoard(): void {
+    if (!this.isPremium && this.boards.length >= this.freeBoardLimit) {
+      this.snack.open('Free users can create up to 2 boards. Upgrade for unlimited boards.', 'Close', { duration: 3000 });
+      this.dialog.open(UpgradePromptComponent, { width: '400px' });
+      return; 
+    }
+    if (this.workspace?.visibility === 'PRIVATE') {
+      this.boardForm.patchValue({ visibility: 'PRIVATE' });
+    }
+    this.showCreateBoard = !this.showCreateBoard;
+  }
+
   createBoard(): void {
-    if (!this.isPremium) { this.router.navigate(['/upgrade']); return; }
     if (this.boardForm.invalid) return;
     this.creatingBoard = true;
-    this.boardService.create({ workspaceId: this.workspace!.id, ...this.boardForm.value } as any).subscribe({
-      next: board => { this.boards.unshift(board); this.creatingBoard = false; this.showCreateBoard = false; this.boardForm.reset({ background: '#4f46e5', visibility: 'PRIVATE' }); this.snack.open('Board created!', 'Close', { duration: 3000 }); },
-      error: err => { this.creatingBoard = false; this.snack.open(err.error?.message ?? 'Create failed', 'Close', { duration: 4000 }); }
+    
+    const payload = {
+      workspaceId: this.workspace!.id,
+      ...this.boardForm.value,
+      visibility: this.workspace!.visibility === 'PUBLIC'
+        ? this.boardForm.value.visibility
+        : 'PRIVATE'
+    } as any;
+    if (!payload.dueDate) {
+      delete payload.dueDate;
+    } else if (payload.dueDate.length === 16) {
+      // Append seconds if missing (e.g. 2024-05-02T15:30 -> 2024-05-02T15:30:00)
+      payload.dueDate = payload.dueDate + ':00';
+    }
+    if (!payload.priority) {
+      delete payload.priority;
+    }
+
+    this.boardService.create(payload).subscribe({
+      next: board => { this.boards.unshift(board); this.creatingBoard = false; this.showCreateBoard = false; this.boardForm.reset({ background: '#4f46e5', visibility: 'PRIVATE', dueDate: '', priority: '' }); this.snack.open('Board created!', 'Close', { duration: 3000 }); },
+      error: err => {
+        const message = err.error?.message ?? 'Create failed';
+        this.creatingBoard = false;
+        this.snack.open(message, 'Close', { duration: 4000 });
+        if (message.toLowerCase().includes('free users')) {
+          this.dialog.open(UpgradePromptComponent, { width: '400px' });
+        }
+      }
     });
   }
 
   openBoard(id: number): void {
-    if (!this.isPremium) { this.router.navigate(['/upgrade']); return; }
     this.router.navigate(['/board', id]);
   }
 
@@ -220,12 +266,20 @@ export class WorkspaceDetailComponent implements OnInit {
   }
 
   deleteWorkspace(): void {
-    if (!this.workspace || !this.isOwner()) return;
+    if (!this.workspace || (!this.isOwner() && !this.isAdmin())) return;
     this.dialog.open(ConfirmDialogComponent, { width: '400px', data: { title: 'Delete Workspace', message: 'This permanently deletes the workspace. Cannot be undone.', confirmText: 'Delete Forever' } })
       .afterClosed().subscribe(ok => { if (!ok) return; this.workspaceService.delete(this.workspace!.id).subscribe({ next: () => { this.snack.open('Workspace deleted', 'Close', { duration: 3000 }); this.router.navigate(['/dashboard']); } }); });
   }
 
   isOwner(): boolean { return this.workspace?.ownerId === this.userId; }
+  isAdmin(): boolean { 
+    const me = this.members.find(m => m.userId === this.userId);
+    return me?.role === 'ADMIN'; 
+  }
+  isOverdue(board: Board): boolean {
+    if (!board.dueDate || board.isClosed) return false;
+    return new Date(board.dueDate) < new Date();
+  }
   get memberCount(): number { return this.members.length || (this.workspace?.members?.length ?? 0); }
   getInitials(name: string): string { return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); }
   getAvatarBg(seed: number): string { const c = ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444','#14B8A6']; return c[seed % c.length]; }

@@ -6,7 +6,7 @@
         <h1 class="greeting">Welcome, {{ currentUser?.fullName }}</h1>
         <p class="subtitle">Here's what's happening with your projects today.</p>
       </div>
-      <div style="display:flex;align-items:center;gap:12px">
+      <div class="header-actions">
         <!-- Plan badge in header -->
         <div *ngIf="isPaidUser" class="plan-pill plan-pill--premium">
           <mat-icon style="font-size:16px;width:16px;height:16px;color:#fde68a">workspace_premium</mat-icon>
@@ -26,7 +26,7 @@
     <div *ngIf="!isPaidUser" class="upgrade-banner" routerLink="/upgrade">
       <mat-icon>rocket_launch</mat-icon>
       <div>
-        <strong>Unlock Boards, Cards &amp; Notifications</strong>
+        <strong>Unlock Tasks, Cards &amp; Notifications</strong>
         <span>You're on the Free plan — upgrade once for lifetime Premium access.</span>
       </div>
       <button class="upgrade-banner-btn">Upgrade to Premium →</button>
@@ -41,17 +41,17 @@
              <label class="custom-label">Workspace Name</label>
              <input class="input-base" formControlName="name" placeholder="e.g. Design Team" />
            </div>
-           <div>
-             <label class="custom-label">Visibility</label>
-             <select class="input-base" formControlName="visibility">
-               <option value="PRIVATE">Private</option>
-               <option value="PUBLIC">Public</option>
-             </select>
-           </div>
         </div>
         <div class="mt-4">
            <label class="custom-label">Description</label>
            <input class="input-base" formControlName="description" placeholder="Optional details..." />
+        </div>
+        <div class="mt-4">
+           <label class="custom-label">Visibility</label>
+           <select class="input-base" formControlName="visibility">
+             <option value="PRIVATE">Private - only owner and members can view</option>
+             <option value="PUBLIC">Public - visible on the guest page</option>
+           </select>
         </div>
         <div class="flex gap-2 mt-4">
            <button class="btn-primary" type="submit" [disabled]="creating || createForm.invalid">Create</button>
@@ -84,6 +84,12 @@
              <button mat-icon-button [matMenuTriggerFor]="wsMenu" (click)="$event.stopPropagation()"><mat-icon>more_vert</mat-icon></button>
           </div>
           <mat-menu #wsMenu="matMenu">
+             <button mat-menu-item (click)="togglePin(ws.id, $event)">
+               <mat-icon>{{ isPinned(ws.id) ? 'keep' : 'push_pin' }}</mat-icon> {{ isPinned(ws.id) ? 'Unpin' : 'Pin' }} Workspace
+             </button>
+             <button mat-menu-item (click)="toggleArchive(ws.id, $event)">
+               <mat-icon>archive</mat-icon> Archive Workspace
+             </button>
              <button mat-menu-item style="color: #DC2626;" (click)="deleteWorkspace(ws.id, $event)">
                <mat-icon style="color: #DC2626;">delete</mat-icon> Delete Workspace
              </button>
@@ -91,12 +97,16 @@
           <h3 class="ws-name">{{ ws.name }}</h3>
           <p class="ws-desc">{{ ws.description || 'No description provided.' }}</p>
           <div class="ws-footer">
-             <span class="badge">{{ ws.visibility | titlecase }}</span>
              <span class="text-sm font-medium text-gray-500">{{ ws.members.length }} members</span>
+             <span class="visibility-chip" [class.public]="ws.visibility === 'PUBLIC'">
+               {{ ws.visibility === 'PUBLIC' ? 'Public' : 'Private' }}
+             </span>
           </div>
         </div>
       </div>
     </div>
+
+
 
   </div>
 </div>

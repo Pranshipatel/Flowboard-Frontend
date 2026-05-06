@@ -1,9 +1,24 @@
-.board-canvas {
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.board-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 32px 32px 0 32px;
   background: white;
+  box-sizing: border-box;
 }
 
 /* Upgrade Banner */
@@ -62,6 +77,12 @@
   justify-content: space-between;
   margin-bottom: 24px;
 }
+.board-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .board-title {
   margin: 0;
   font-size: 24px;
@@ -85,6 +106,7 @@
 /* Kanban Columns Area */
 .lists-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: flex-start;
   gap: 20px;
@@ -107,6 +129,7 @@
   display: flex;
   flex-direction: column;
   max-height: 100%;
+  min-height: 0;
 }
 
 .col-header {
@@ -198,6 +221,29 @@
 
 .avatar-tiny { width: 20px; height: 20px; border-radius: 50%; overflow: hidden; }
 .avatar-tiny img { width: 100%; height: 100%; object-fit: cover; }
+.creator-avatar {
+  background: var(--primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.creator-avatar span {
+  line-height: 1;
+}
+.creator-name {
+  max-width: 160px;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .deadline { font-size: 11px; font-weight: 600; color: #64748B; }
 
@@ -233,3 +279,43 @@
 .drag-placeholder { background: rgba(0,0,0,0.04); border-radius: 12px; border: 1px dashed #CBD5E1; min-height: 90px; margin-bottom: 12px; }
 .cdk-drag-animating { transition: transform 0ms; }
 .lists-container.cdk-drop-list-dragging .column-wrapper:not(.cdk-drag-placeholder) { transition: transform 150ms cubic-bezier(0, 0, 0.2, 1); }
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .board-canvas {
+    padding: 16px 16px 0 16px;
+  }
+  
+  .board-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .board-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .column-wrapper {
+    width: 280px;
+  }
+  
+  .upgrade-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 16px 16px 16px;
+  }
+  
+  .banner-content span {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .column-wrapper {
+    width: 260px;
+  }
+}

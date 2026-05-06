@@ -25,6 +25,7 @@ export class CardCreateComponent {
   @Input() listId!:  number;
   @Input() boardId!: number;
   @Output() cardCreated = new EventEmitter<Card>();
+  @Output() createFailed = new EventEmitter<string>();
   @Output() cancelled   = new EventEmitter<void>();
 
   private fb          = inject(FormBuilder);
@@ -50,7 +51,10 @@ export class CardCreateComponent {
         this.cardCreated.emit(card);
         this.form.reset();
       },
-      error: () => { this.loading = false; }
+      error: error => {
+        this.loading = false;
+        this.createFailed.emit(error.error?.message || 'Failed to create card');
+      }
     });
   }
 

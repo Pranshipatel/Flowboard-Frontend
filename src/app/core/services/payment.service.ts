@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface Plan {
   id: number;
@@ -43,6 +44,7 @@ export interface CheckoutSession {
 export class PaymentService {
 
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private base = `${environment.apiBaseUrl}/payments`;
 
   readonly currentPlan = signal<Subscription | null>(null);
@@ -160,5 +162,23 @@ export class PaymentService {
       plan.maxWorkspaces === -1 ||
       currentCount < plan.maxWorkspaces
     );
+  }
+
+  // Allow free users to perform a premium action up to 2 times PER FEATURE
+  checkPremiumUsage(feature: 'board' | 'list' | 'card' | 'notification'): boolean {
+    if (this.isPaidPlan()) return true;
+
+    const userId = this.authService.getUserId();
+    if (!userId) return false;
+
+    const storageKey = `premium_feature_usage_${feature}_${userId}`;
+    const currentUsage = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    
+    if (currentUsage < 2) {
+      localStorage.setItem(storageKey, (currentUsage + 1).toString());
+      return true; // Allow action
+    }
+
+    return false; // Deny action, show upgrade prompt
   }
 }

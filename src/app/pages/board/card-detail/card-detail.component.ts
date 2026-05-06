@@ -17,7 +17,7 @@ import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 
 import {
-  Card, CardActivity, CardStatus, Priority
+  Card, CardActivity, CardStatus
 } from '../../../core/models/card.model';
 import { CardService } from '../../../core/services/card.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -48,6 +48,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   @Input() card!: Card;
   @Input() boardMembers: Array<{ userId: number; displayName?: string; avatarUrl?: string }> = [];
+  @Input() isGuest = false;
   @Output() cardUpdated = new EventEmitter<Card>();
   @Output() cardDeleted = new EventEmitter<{ cardId: number; listId: number }>();
   @Output() closed      = new EventEmitter<void>();
@@ -60,12 +61,10 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   editedTitle       = '';
   editedDescription = '';
-  newDueDate        = '';
   newStartDate      = '';
   commentText       = '';
 
   statuses:  CardStatus[] = ['TO_DO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
-  priorities: Priority[]  = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
   statusLabels: Record<CardStatus, string> = {
     TO_DO: 'To Do', IN_PROGRESS: 'In Progress',
@@ -75,15 +74,10 @@ export class CardDetailComponent implements OnInit, OnDestroy {
     TO_DO: 'radio_button_unchecked', IN_PROGRESS: 'sync',
     IN_REVIEW: 'rate_review', DONE: 'check_circle'
   };
-  priorityColors: Record<Priority, string> = {
-    LOW: '#22c55e', MEDIUM: '#f59e0b',
-    HIGH: '#ef4444', CRITICAL: '#7c3aed'
-  };
 
   ngOnInit(): void {
     this.editedTitle       = this.card.title;
     this.editedDescription = this.card.description || '';
-    this.newDueDate        = this.card.dueDate || '';
     this.newStartDate      = this.card.startDate || '';
     this.loadActivity();
   }
@@ -109,6 +103,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   // ── Title ───────────────────────────────────────────────────────────────────
   saveTitle(): void {
+    if (this.isGuest) return;
     if (!this.editedTitle.trim() || this.editedTitle === this.card.title) {
       this.editTitle = false;
       return;
@@ -130,6 +125,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   // ── Description ─────────────────────────────────────────────────────────────
   saveDescription(): void {
+    if (this.isGuest) return;
     this.saving = true;
     this.cardService.update(this.card.id, {
       title: this.card.title,
@@ -147,6 +143,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   // ── Status ──────────────────────────────────────────────────────────────────
   setStatus(status: CardStatus): void {
+    if (this.isGuest) return;
     this.saving = true;
     this.cardService.setStatus(this.card.id, status)
       .pipe(takeUntil(this.destroy$)).subscribe({
@@ -155,50 +152,11 @@ export class CardDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ── Priority ─────────────────────────────────────────────────────────────────
-  setPriority(priority: Priority): void {
-    this.saving = true;
-    this.cardService.setPriority(this.card.id, priority)
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: updated => { this.saving = false; this.emitUpdate(updated); this.loadActivity(); },
-        error: () => { this.saving = false; this.snack.open('Failed to update priority', 'Close', { duration: 3000 }); }
-      });
-  }
 
-  // ── Due Date ─────────────────────────────────────────────────────────────────
-  saveDueDate(): void {
-    this.saving = true;
-    this.cardService.update(this.card.id, {
-      title:   this.card.title,
-      dueDate: this.newDueDate || undefined
-    }).pipe(takeUntil(this.destroy$)).subscribe({
-      next: updated => {
-        this.saving = false;
-        this.emitUpdate(updated);
-        this.snack.open('Due date updated', 'Close', { duration: 2000 });
-        
-        // Trigger OVERDUE notification if the new date is in the past
-        if (this.newDueDate && new Date(this.newDueDate) < new Date() && updated.status !== 'DONE') {
-          this.notificationService.sendNotification({
-            userId: this.authService.getUserId(),
-            message: `Card "${updated.title}" is overdue!`,
-            type: 'OVERDUE'
-          }).subscribe(() => {
-            this.notificationService.refreshUnreadCount();
-          });
-        }
-      },
-      error: () => { this.saving = false; this.snack.open('Failed to update due date', 'Close', { duration: 3000 }); }
-    });
-  }
-
-  clearDueDate(): void {
-    this.newDueDate = '';
-    this.saveDueDate();
-  }
 
   // ── Assignee ─────────────────────────────────────────────────────────────────
   assignTo(userId: number | null): void {
+    if (this.isGuest) return;
     this.saving = true;
     this.cardService.setAssignee(this.card.id, userId)
       .pipe(takeUntil(this.destroy$)).subscribe({
@@ -214,6 +172,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   // ── Cover Color ──────────────────────────────────────────────────────────────
   updateCoverColor(color: string | null): void {
+    if (this.isGuest) return;
     this.cardService.update(this.card.id, {
       title:      this.card.title,
       coverColor: color || undefined
@@ -225,6 +184,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
 
   // ── Archive / Delete ─────────────────────────────────────────────────────────
   archiveCard(): void {
+    if (this.isGuest) return;
     this.cardService.archive(this.card.id)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: updated => {
@@ -237,6 +197,7 @@ export class CardDetailComponent implements OnInit, OnDestroy {
   }
 
   deleteCard(): void {
+    if (this.isGuest) return;
     this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -283,10 +244,5 @@ export class CardDetailComponent implements OnInit, OnDestroy {
     if (!userId) return 'Unassigned';
     const m = this.boardMembers.find(m => m.userId === userId);
     return m?.displayName || `User #${userId}`;
-  }
-
-  isOverdue(): boolean {
-    if (!this.card.dueDate || this.card.status === 'DONE') return false;
-    return new Date(this.card.dueDate) < new Date();
   }
 }

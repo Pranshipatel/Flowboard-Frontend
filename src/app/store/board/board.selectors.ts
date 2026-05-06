@@ -33,7 +33,7 @@ export const selectCards = createSelector(
 
 export const selectCardsForList = (listId: number) => createSelector(
   selectCards,
-  (cards) => cards.filter(c => c.listId === listId && !c.isArchived)
+  (cards) => cards.filter(c => c.listId === listId && !c.isArchived && !(c as any).archived)
 );
 
 export const selectBoardLoading = createSelector(

@@ -34,10 +34,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => {
 
-      // Redirect to login on unauthorized
+      // Redirect to the guest page on unauthorized
       if (err.status === 401) {
-        localStorage.clear();
-        router.navigate(['/login']);
+        if (!req.url.includes('/auth/login')) {
+          localStorage.clear();
+          router.navigate(['/guest']);
+        }
       }
 
       return throwError(() => err);

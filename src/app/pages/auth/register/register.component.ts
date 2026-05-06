@@ -37,13 +37,13 @@ export class RegisterComponent {
 
   form: FormGroup = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
-    email:    ['', [Validators.required, Validators.email]],
+    email:    ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$')]],
     username: ['', [
       Validators.required, Validators.minLength(3),
       Validators.maxLength(30),
       Validators.pattern('^[a-zA-Z0-9_]+$')
     ]],
-    password:        ['', [Validators.required, Validators.minLength(6)]],
+    password:        ['', [Validators.required, Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$')]],
     confirmPassword: ['', Validators.required]
   }, { validators: this.passwordMatch });
 

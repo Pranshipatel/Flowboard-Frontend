@@ -35,4 +35,65 @@ export class AdminEffects {
       )
     )
   );
+
+
+  updateUserRole$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.updateUserRole),
+      switchMap(({ userId, role }) =>
+        this.http.put(`${this.base}/users/${userId}/role?role=${role}`, {}, { responseType: 'text' }).pipe(
+          map(() => AdminActions.loadAllUsers()),
+          catchError(error => {
+            console.error('Failed to update role', error);
+            return of(AdminActions.loadAllUsersFailure({ error: 'Failed to update role' }));
+          })
+        )
+      )
+    )
+  );
+
+  suspendUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.suspendUser),
+      switchMap(({ userId }) =>
+        this.http.put(`${this.base}/users/${userId}/suspend`, {}, { responseType: 'text' }).pipe(
+          map(() => AdminActions.loadAllUsers()),
+          catchError(error => {
+            console.error('Failed to suspend user', error);
+            return of(AdminActions.loadAllUsersFailure({ error: 'Failed to suspend user' }));
+          })
+        )
+      )
+    )
+  );
+
+  reactivateUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.reactivateUser),
+      switchMap(({ userId }) =>
+        this.http.put(`${this.base}/users/${userId}/reactivate`, {}, { responseType: 'text' }).pipe(
+          map(() => AdminActions.loadAllUsers()),
+          catchError(error => {
+            console.error('Failed to reactivate user', error);
+            return of(AdminActions.loadAllUsersFailure({ error: 'Failed to reactivate user' }));
+          })
+        )
+      )
+    )
+  );
+
+  deleteUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.deleteUser),
+      switchMap(({ userId }) =>
+        this.http.delete(`${this.base}/users/${userId}`, { responseType: 'text' }).pipe(
+          map(() => AdminActions.loadAllUsers()),
+          catchError(error => {
+            console.error('Failed to delete user', error);
+            return of(AdminActions.loadAllUsersFailure({ error: 'Failed to delete user' }));
+          })
+        )
+      )
+    )
+  );
 }

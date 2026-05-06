@@ -14,7 +14,7 @@
     <div class="title-header">
       <div class="title-icon"><mat-icon>task_alt</mat-icon></div>
       <div class="title-content">
-        <h1 *ngIf="!editTitle" class="dynamic-title" (click)="editTitle = true; editedTitle = card.title">
+        <h1 *ngIf="!editTitle" class="dynamic-title" (click)="!isGuest && (editTitle = true); editedTitle = card.title" [style.cursor]="isGuest ? 'default' : 'pointer'">
           {{ card.title }}
         </h1>
         <div *ngIf="editTitle" class="relative-form">
@@ -30,12 +30,16 @@
 
     <!-- Status Subheader -->
     <div class="badges-row">
-       <span class="rich-badge status-{{card.status}}">
+       <span class="rich-badge status-{{card.status}}" [matMenuTriggerFor]="isGuest ? null : statusMenu" [style.cursor]="isGuest ? 'default' : 'pointer'" style="display: inline-flex; align-items: center; gap: 4px;">
           <span class="dot"></span> {{ statusLabels[card.status] }}
+          <mat-icon *ngIf="!isGuest" style="font-size: 14px; width: 14px; height: 14px;">arrow_drop_down</mat-icon>
        </span>
-       <span *ngIf="isOverdue()" class="rich-badge bg-danger text-white">
-          <mat-icon style="font-size:14px;width:14px;height:14px;">warning</mat-icon> Overdue
-       </span>
+       <mat-menu #statusMenu="matMenu" class="modern-menu">
+         <button mat-menu-item *ngFor="let s of statuses" (click)="setStatus(s)">
+           <mat-icon [style.color]="s === 'DONE' ? '#10B981' : 'inherit'">{{ statusIcons[s] }}</mat-icon>
+           {{ statusLabels[s] }}
+         </button>
+       </mat-menu>
     </div>
 
     <div class="canvas-split">
@@ -47,11 +51,11 @@
         <div class="content-block">
           <div class="block-header">
             <div class="block-title"><mat-icon>subject</mat-icon> Description</div>
-            <button class="btn-ghost" *ngIf="!editMode" (click)="editMode = true; editedDescription = card.description || ''">Edit Text</button>
+            <button class="btn-ghost" *ngIf="!editMode && !isGuest" (click)="editMode = true; editedDescription = card.description || ''">Edit Text</button>
           </div>
           
           <div class="block-body" *ngIf="!editMode">
-            <div class="desc-renderer" [class.empty]="!card.description" (click)="!card.description && (editMode = true)">
+            <div class="desc-renderer" [class.empty]="!card.description" (click)="!card.description && !isGuest && (editMode = true)" [style.cursor]="(!card.description && !isGuest) ? 'pointer' : 'default'">
                {{ card.description || 'Add a more detailed description...' }}
             </div>
           </div>
@@ -91,7 +95,7 @@
         <div class="property-group">
            <label class="prop-label">Assignee</label>
            <!-- Assignee List -->
-           <div class="selector-list">
+           <div class="selector-list" *ngIf="!isGuest">
               <button class="selector-item" *ngFor="let m of boardMembers" (click)="assignTo(m.userId)"
                       [class.active]="card.assigneeId === m.userId">
                   <div class="member-mini-avatar" [style.background]="m.avatarUrl ? 'url('+m.avatarUrl+') center/cover' : 'var(--primary)'">
@@ -101,42 +105,26 @@
               </button>
               <button *ngIf="card.assigneeId" class="clear-btn" (click)="assignTo(null)">Remove Assigned</button>
            </div>
-        </div>
-
-        <div class="property-group">
-           <label class="prop-label">Priority</label>
-           <div class="priority-grid">
-              <button class="priority-item" *ngFor="let p of priorities" (click)="setPriority(p)"
-                      [style.border-color]="card.priority === p ? priorityColors[p] : 'transparent'"
-                      [style.background]="card.priority === p ? (priorityColors[p]+'15') : '#F8FAFC'">
-                 <span class="p-dot" [style.background]="priorityColors[p]"></span> {{ p | titlecase }}
-              </button>
+           <!-- Guest View Assignee -->
+           <div class="selector-list" *ngIf="isGuest">
+              <div class="selector-item active" style="cursor: default" *ngIf="card.assigneeId">
+                  {{ getAssigneeName(card.assigneeId) }}
+              </div>
+              <div class="selector-item" style="cursor: default; opacity: 0.7;" *ngIf="!card.assigneeId">
+                  Unassigned
+              </div>
            </div>
         </div>
 
-        <div class="property-group">
-           <label class="prop-label">Due Date</label>
-           <div class="date-wrapper">
-              <input type="date" [(ngModel)]="newDueDate" class="date-input" [class.error]="isOverdue()" />
-           </div>
-           <div class="flex gap-2 mt-2">
-              <button class="btn-primary flex-1" style="height:32px" (click)="saveDueDate()" [disabled]="saving">Set Date</button>
-              <button *ngIf="card.dueDate" class="btn-secondary flex-1" style="height:32px" (click)="clearDueDate()">Clear</button>
-           </div>
-        </div>
 
-        <div class="property-divider"></div>
+        <div class="property-divider" *ngIf="!isGuest"></div>
 
-        <div class="property-group">
+        <div class="property-group" *ngIf="!isGuest">
            <label class="prop-label">Appearance</label>
-           <div class="picker-wrapper">
-              <app-color-picker [selectedColor]="card.coverColor || null" (colorChange)="updateCoverColor($event)"></app-color-picker>
-              <span style="font-size:12px; color:#64748B; padding-left:8px;">Cover Style</span>
-           </div>
+           <app-color-picker [selectedColor]="card.coverColor || null" label="Cover Style" (colorChange)="updateCoverColor($event)"></app-color-picker>
         </div>
 
-        <div class="property-group mt-6">
-           <button class="action-btn" (click)="copyCard()"><mat-icon>content_copy</mat-icon> Make a Copy</button>
+        <div class="property-group mt-6" *ngIf="!isGuest">
            <button class="action-btn warning" (click)="archiveCard()"><mat-icon>archive</mat-icon> Archive Card</button>
            <button class="action-btn danger" (click)="deleteCard()"><mat-icon>delete</mat-icon> Delete Permanently</button>
         </div>

@@ -74,9 +74,17 @@
 .canvas-right { width: 260px; flex-shrink: 0; }
 
 @media (max-width: 800px) {
-   .canvas-split { flex-direction: column; padding-left: 0; }
+   .canvas-split { flex-direction: column; padding-left: 0; gap: 24px; }
    .canvas-right { width: 100%; }
-   .badges-row { padding-left: 0; }
+   .badges-row { padding-left: 0; margin-bottom: 20px; }
+}
+
+@media (max-width: 480px) {
+   .card-scroll-body { padding: 16px; }
+   .dynamic-title { font-size: 20px; }
+   .huge-input { font-size: 18px; }
+   .title-header { gap: 12px; }
+   .card-hero { height: 100px; }
 }
 
 /* Left Content Blocks */

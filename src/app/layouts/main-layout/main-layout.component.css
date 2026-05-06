@@ -83,6 +83,7 @@
 /* RIGHT MAIN AREA */
 .main-wrapper {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background: var(--bg-app);
@@ -185,12 +186,16 @@
 /* CONTENT OUTLET */
 .content-scroll {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
+  min-height: 0;
+  min-width: 0;
 }
 
 /* Custom Search Dropdown */
-.search-dropdown { position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-float); border: 1px solid var(--border-light); z-index: 100; overflow: hidden; animation: popDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.search-dropdown { position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 260px; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-float); border: 1px solid var(--border-light); z-index: 100; overflow: hidden; animation: popDown 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes popDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
 .search-dropdown-header { padding: 12px 16px; border-bottom: 1px solid var(--border-light); background: #F8FAFC; }
@@ -229,3 +234,52 @@
   transition: background 0.15s;
 }
 .menu-plan-badge--free:hover { background: #FDE68A; }
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .sidebar-light {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-light {
+    display: none; /* Hide secondary sidebar on mobile */
+  }
+  
+  .top-nav {
+    padding: 0 16px;
+  }
+  
+  .search-container {
+    width: 200px;
+  }
+  
+  .premium-badge span {
+    display: none; /* Hide text, keep icon */
+  }
+  
+  .upgrade-nav-btn {
+    padding: 6px 10px;
+    font-size: 0; /* Hide text */
+  }
+  
+  .upgrade-nav-btn mat-icon {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-dark {
+    width: 56px;
+  }
+  
+  .search-container {
+    width: 140px;
+  }
+
+  .search-dropdown {
+    left: auto;
+    right: -20px;
+  }
+}

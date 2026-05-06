@@ -5,12 +5,26 @@
       <h3>Board Analytics</h3>
     </div>
     <p class="header-subtitle">Insights and performance metrics for {{ board.name }}</p>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+      <div *ngIf="board.dueDate" class="board-due-date-badge" style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:12px; background:var(--bg-card); color:var(--text-secondary); font-size:12px; font-weight:500; border:1px solid var(--border-color);">
+        <mat-icon style="font-size:14px; width:14px; height:14px; color:#3B82F6;">event</mat-icon>
+        Board Due: {{ board.dueDate | date:'medium' }}
+      </div>
+      <div *ngIf="isBoardOverdue()" class="board-overdue-badge" style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:12px; background:#FEE2E2; color:#DC2626; font-size:12px; font-weight:700; border:1px solid #FCA5A5;">
+        <mat-icon style="font-size:14px; width:14px; height:14px;">warning</mat-icon>
+        OVERDUE
+      </div>
+      <div *ngIf="board.priority" class="board-priority-badge" style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:12px; background:var(--bg-card); color:var(--text-secondary); font-size:12px; font-weight:500; border:1px solid var(--border-color);">
+        <mat-icon style="font-size:14px; width:14px; height:14px; color:#EF4444;">flag</mat-icon>
+        Priority: {{ board.priority | titlecase }}
+      </div>
+    </div>
   </div>
 
   <mat-divider></mat-divider>
 
   <!-- Summary Cards -->
-  <div class="stats-grid">
+  <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
     <div class="stat-card total">
       <div class="stat-info">
         <span class="stat-label">Total Cards</span>
@@ -27,12 +41,20 @@
       <div class="stat-icon-box"><mat-icon>group</mat-icon></div>
     </div>
 
-    <div class="stat-card overdue">
+    <div *ngIf="isBoardOverdue()" class="stat-card overdue">
       <div class="stat-info">
         <span class="stat-label">Overdue</span>
         <span class="stat-value">{{ stats.overdue }}</span>
       </div>
       <div class="stat-icon-box"><mat-icon>warning</mat-icon></div>
+    </div>
+
+    <div class="stat-card due-dates" style="background: #EFF6FF;">
+      <div class="stat-info">
+        <span class="stat-label">Has Deadline</span>
+        <span class="stat-value">{{ stats.withDueDates }}</span>
+      </div>
+      <div class="stat-icon-box" style="color: #3B82F6;"><mat-icon>event</mat-icon></div>
     </div>
   </div>
 
@@ -42,33 +64,44 @@
     
     <div class="breakdown-item">
       <div class="item-header">
-        <span class="item-label">Done</span>
+        <span class="item-label" style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Done</span>
         <span class="item-percentage">{{ getPercentage(stats.done) }}%</span>
       </div>
-      <div class="progress-track">
-        <div class="progress-bar done" [style.width.%]="getPercentage(stats.done)"></div>
+      <div class="progress-track" style="background:#E2E8F0;">
+        <div class="progress-bar done" [style.width.%]="getPercentage(stats.done)" style="background:#10B981;"></div>
       </div>
       <span class="item-meta">{{ stats.done }} of {{ stats.total }} cards completed</span>
     </div>
 
     <div class="breakdown-item">
       <div class="item-header">
-        <span class="item-label">In Progress</span>
+        <span class="item-label" style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#8B5CF6;"></span> In Review</span>
+        <span class="item-percentage">{{ getPercentage(stats.inReview) }}%</span>
+      </div>
+      <div class="progress-track" style="background:#E2E8F0;">
+        <div class="progress-bar in-review" [style.width.%]="getPercentage(stats.inReview)" style="background:#8B5CF6;"></div>
+      </div>
+      <span class="item-meta">{{ stats.inReview }} cards waiting for review</span>
+    </div>
+
+    <div class="breakdown-item">
+      <div class="item-header">
+        <span class="item-label" style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#F59E0B;"></span> In Progress</span>
         <span class="item-percentage">{{ getPercentage(stats.inProgress) }}%</span>
       </div>
-      <div class="progress-track">
-        <div class="progress-bar active" [style.width.%]="getPercentage(stats.inProgress)"></div>
+      <div class="progress-track" style="background:#E2E8F0;">
+        <div class="progress-bar active" [style.width.%]="getPercentage(stats.inProgress)" style="background:#F59E0B;"></div>
       </div>
       <span class="item-meta">{{ stats.inProgress }} cards currently in work</span>
     </div>
 
     <div class="breakdown-item">
       <div class="item-header">
-        <span class="item-label">To Do</span>
+        <span class="item-label" style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> To Do</span>
         <span class="item-percentage">{{ getPercentage(stats.todo) }}%</span>
       </div>
-      <div class="progress-track">
-        <div class="progress-bar todo" [style.width.%]="getPercentage(stats.todo)"></div>
+      <div class="progress-track" style="background:#E2E8F0;">
+        <div class="progress-bar todo" [style.width.%]="getPercentage(stats.todo)" style="background:#94A3B8;"></div>
       </div>
       <span class="item-meta">{{ stats.todo }} cards waiting to start</span>
     </div>
@@ -76,20 +109,25 @@
 
   <!-- Member Roles -->
   <div class="roles-section">
-    <h4>Team Composition</h4>
-    <div class="roles-grid">
-       <div class="role-stat">
-          <span class="role-val">{{ board.analytics.adminCount }}</span>
-          <span class="role-lab">Admins</span>
-       </div>
-       <div class="role-stat">
-          <span class="role-val">{{ board.analytics.memberCount }}</span>
-          <span class="role-lab">Members</span>
-       </div>
-       <div class="role-stat">
-          <span class="role-val">{{ board.analytics.observerCount }}</span>
-          <span class="role-lab">Observers</span>
-       </div>
+    <h4>Workspace Members</h4>
+    <div class="members-list" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+      <div *ngFor="let member of members" style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px;">
+         <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+               {{ member.displayName ? member.displayName[0].toUpperCase() : 'U' }}
+            </div>
+            <div>
+               <div style="font-weight:600; color:#0F172A; font-size:14px;">{{ member.displayName || 'User #' + member.userId }}</div>
+               <div style="font-size:12px; color:#64748B;">{{ member.email || 'No email' }}</div>
+            </div>
+         </div>
+         <span style="font-size:11px; font-weight:700; text-transform:uppercase; padding:4px 10px; border-radius:20px; background:#E2E8F0; color:#475569;">
+            {{ member.role }}
+         </span>
+      </div>
+      <div *ngIf="!members || members.length === 0" style="text-align:center; color:#94A3B8; font-size:14px; padding:16px;">
+        No members found.
+      </div>
     </div>
   </div>
 </div>

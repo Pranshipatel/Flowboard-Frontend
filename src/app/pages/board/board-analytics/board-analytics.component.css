@@ -97,3 +97,10 @@
   .role-val { display: block; font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 2px; }
   .role-lab { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .analytics-container { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+  .roles-grid { grid-template-columns: 1fr; gap: 12px; }
+}

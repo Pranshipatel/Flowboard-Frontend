@@ -1,32 +1,37 @@
-<div class="board-canvas">
+<div class="board-canvas ">
+
+  <!-- Guest Banner -->
+  <div *ngIf="isGuest" style="background: #1e293b; color: white; padding: 12px; text-align: center; font-size: 14px; border-radius: 8px; margin: 16px 24px 0 24px;">
+    You are viewing this board in read-only mode. 
+    <a routerLink="/login" style="color: #38bdf8; text-decoration: underline; cursor: pointer;">Log in</a> or 
+    <a routerLink="/register" style="color: #38bdf8; text-decoration: underline; cursor: pointer;">Sign up</a> to contribute.
+  </div>
   
   <!-- Board Header -->
   <div class="board-header">
-    <h1 class="board-title">{{ board?.name || 'Loading...' }}</h1>
+    <div class="board-title-area">
+      <h1 class="board-title">{{ board?.name || 'Loading...' }}</h1>
+      <span *ngIf="board?.dueDate" class="pill-tag bg-blue" style="font-size: 12px; display: flex; align-items: center; gap: 4px;">
+        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">event</mat-icon> Due: {{ board?.dueDate | date:'medium' }}
+      </span>
+      <span *ngIf="board?.priority" class="pill-tag bg-red" style="font-size: 12px; display: flex; align-items: center; gap: 4px; background-color: #FEE2E2; color: #DC2626;">
+        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">flag</mat-icon> Priority: {{ board?.priority | titlecase }}
+      </span>
+    </div>
     
-    <div class="board-actions">
-      <button class="btn-primary">
-         <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">add</mat-icon> Add board
-      </button>
+    <div class="board-actions" *ngIf="!isGuest">
       <button class="circle-btn" [matMenuTriggerFor]="boardSettingsMenu"><mat-icon>more_horiz</mat-icon></button>
       
       <mat-menu #boardSettingsMenu="matMenu">
         <button mat-menu-item (click)="showAnalytics = true">Dashboard Metrics</button>
-        <button mat-menu-item (click)="showArchive = true">Archive Menu</button>
+        <button mat-menu-item (click)="openArchiveMenu()">Archive Menu</button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="deleteBoard()">Delete Board</button>
       </mat-menu>
     </div>
   </div>
 
-  <!-- Upgrade Banner for FREE users -->
-  <div *ngIf="!isPremium" class="upgrade-banner">
-    <div class="banner-content">
-      <mat-icon>lock</mat-icon>
-      <span>You are on the FREE plan. Upgrade to Premium to unlock unlimited lists, cards, and advanced features.</span>
-    </div>
-    <button class="upgrade-btn-banner" routerLink="/upgrade">Upgrade Now</button>
-  </div>
+
 
   <!-- Skeletons (Load Instantly) -->
   <div class="lists-container" *ngIf="loading">
@@ -43,14 +48,14 @@
   <div class="lists-container" *ngIf="!loading"
        cdkDropList
        cdkDropListOrientation="horizontal"
-       [cdkDropListData]="lists"
-       [cdkDropListDisabled]="!isPremium"
-       (cdkDropListDropped)="onListDrop($event)">
+       [cdkDropListData]="getActiveLists()"
+       (cdkDropListDropped)="onListDrop($event)"
+       [cdkDropListDisabled]="isGuest">
 
-    <ng-container *ngFor="let list of lists">
-      <div *ngIf="!list.isArchived"
-           cdkDrag
+    <ng-container *ngFor="let list of getActiveLists()">
+      <div cdkDrag
            [cdkDragData]="list"
+           [cdkDragDisabled]="isGuest"
            class="column-wrapper">
         
         <div class="column">
@@ -59,7 +64,7 @@
             <div class="col-title-area">
               <h2>{{ list.name }}</h2>
             </div>
-            <button class="col-opts" [matMenuTriggerFor]="listMenu"><mat-icon>more_horiz</mat-icon></button>
+            <button class="col-opts" *ngIf="!isGuest" [matMenuTriggerFor]="listMenu"><mat-icon>more_horiz</mat-icon></button>
 
             <mat-menu #listMenu="matMenu">
               <button mat-menu-item (click)="archiveList(list.id)">Archive List</button>
@@ -72,27 +77,30 @@
               [id]="'list-' + list.id"
               [cdkDropListData]="getCards(list.id)"
               [cdkDropListConnectedTo]="getConnectedLists()"
-              [cdkDropListDisabled]="!isPremium"
               (cdkDropListDropped)="onCardDrop($event, list.id)"
               class="cards-scroll">
 
             <ng-container *ngFor="let card of getCards(list.id); let i = index">
-              <div *ngIf="!card.isArchived"
-                   cdkDrag
-                   [cdkDragDisabled]="!isPremium"
+              <div cdkDrag
                    [cdkDragData]="card"
+                   [cdkDragDisabled]="isGuest"
                    class="task-card"
+                   [style.background]="card.coverColor || 'var(--bg-card)'"
+                   [style.color]="card.coverColor ? '#ffffff' : 'inherit'"
                    (click)="openCardDetail(card)">
                 
-                <!-- Fake Progress bar on top for styling (like image) -->
-                <div class="top-progress" *ngIf="i % 3 === 0"></div>
-                <div class="top-progress-blue" *ngIf="i % 3 === 1"></div>
-
                 <div class="card-body">
                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                     <div class="card-title" style="flex: 1;">{{ card.title }}</div>
-                     <button mat-icon-button (click)="$event.stopPropagation()" [matMenuTriggerFor]="cardMenu" style="width: 24px; height: 24px; line-height: 24px; padding: 0;">
-                        <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #94A3B8;">more_vert</mat-icon>
+                     <div style="display: flex; gap: 8px; align-items: flex-start; flex: 1;">
+                       <button mat-icon-button (click)="toggleCardStatus(card, $event)" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#10B981' : '#CBD5E1')" style="width: 20px; height: 20px; line-height: 20px; padding: 0; margin-top: -2px;">
+                          <mat-icon style="font-size: 18px; width: 18px; height: 18px; opacity: 0.9;">{{ card.status === 'DONE' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                       </button>
+                       <div class="card-title" [style.textDecoration]="card.status === 'DONE' ? 'line-through' : 'none'" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#94A3B8' : 'inherit')" style="flex: 1; word-break: break-word; line-height: 1.4; margin-top: -1px; text-shadow: card.coverColor ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'; font-weight: 600;">
+                         {{ card.title }}
+                       </div>
+                     </div>
+                     <button mat-icon-button *ngIf="!isGuest" (click)="$event.stopPropagation()" [matMenuTriggerFor]="cardMenu" style="width: 24px; height: 24px; line-height: 24px; padding: 0;">
+                        <mat-icon style="font-size: 18px; width: 18px; height: 18px;" [style.color]="card.coverColor ? 'rgba(255,255,255,0.8)' : '#94A3B8'">more_vert</mat-icon>
                      </button>
                    </div>
                    
@@ -102,35 +110,21 @@
                       </button>
                    </mat-menu>
 
-                   <!-- Tags Mapping -->
-                   <div class="tags-row" *ngIf="card.priority">
-                      <!-- Dummy Department Tag -->
-                      <span class="pill-tag bg-blue">UX/UI</span>
-                      
-                      <!-- Priority Tag -->
-                      <span class="pill-tag" 
-                            [class.bg-red]="card.priority === 'CRITICAL' || card.priority === 'HIGH'"
-                            [class.bg-yellow]="card.priority === 'MEDIUM'"
-                            [class.bg-green]="card.priority === 'LOW'">
-                        {{ card.priority | titlecase }} Priority
-                      </span>
-                   </div>
 
-                   <!-- Progress Bar (Visual stub) -->
-                   <div class="progress-section" *ngIf="card.description || card.id % 2 === 0">
-                      <div class="progress-text">Progress: {{ (card.id * 17) % 100 }}%</div>
-                      <div class="progress-track"><div class="progress-fill" [style.width.%]="(card.id * 17) % 100"></div></div>
-                   </div>
+
                 </div>
 
                 <div class="card-footer">
                    <div class="footer-left">
-                     <div class="avatar-tiny" *ngIf="card.id % 2 === 0"><img src="https://i.pravatar.cc/100?img={{card.id}}" /></div>
-                     <span class="deadline" *ngIf="card.dueDate">Deadline: {{ card.dueDate | date:'MM/dd' }}</span>
-                   </div>
-                   <div class="footer-right">
-                     <span class="meta-stat"><mat-icon>check_box</mat-icon> {{ (card.id % 5) }}/5</span>
-                     <span class="meta-stat"><mat-icon>chat_bubble_outline</mat-icon> {{ (card.id % 8) }}</span>
+                     <div class="avatar-tiny creator-avatar" [matTooltip]="'Created by ' + getCreatorName(card)">
+                       <img *ngIf="getCardCreator(card)?.avatarUrl; else creatorInitials"
+                            [src]="getCardCreator(card)!.avatarUrl!"
+                            [alt]="getCreatorName(card)" />
+                       <ng-template #creatorInitials>
+                         <span>{{ getCreatorInitials(card) }}</span>
+                       </ng-template>
+                     </div>
+                     <span class="creator-name">{{ getCreatorName(card) }}</span>
                    </div>
                 </div>
 
@@ -141,10 +135,9 @@
           </div>
 
           <!-- Add Card -->
-          <div class="col-footer">
+          <div class="col-footer" *ngIf="!isGuest">
             <ng-container *ngIf="list.id !== activeAddCardListId">
-              <button class="add-card-btn" (click)="onAddCardClick(list.id)" [title]="!isPremium ? 'Upgrade to Premium to add cards' : ''">
-                <mat-icon *ngIf="!isPremium" style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">lock</mat-icon>
+              <button class="add-card-btn" (click)="onAddCardClick(list.id)">
                 + Add card
               </button>
             </ng-container>
@@ -153,6 +146,7 @@
                   [listId]="list.id"
                   [boardId]="board!.id"
                   (cardCreated)="onCardCreated($event, list.id); activeAddCardListId = null"
+                  (createFailed)="onCardCreateFailed($event)"
                   (cancelled)="activeAddCardListId = null">
                 </app-card-create>
             </div>
@@ -162,9 +156,8 @@
     </ng-container>
 
     <!-- Add List Column -->
-    <div class="column-wrapper">
-      <button *ngIf="!showAddList" class="add-col-btn" (click)="onAddListClick()" [title]="!isPremium ? 'Upgrade to Premium to add lists' : ''">
-        <mat-icon *ngIf="!isPremium" style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">lock</mat-icon>
+    <div class="column-wrapper" *ngIf="!isGuest">
+      <button *ngIf="!showAddList" class="add-col-btn" (click)="onAddListClick()">
         + Add another list
       </button>
       <div *ngIf="showAddList" class="column">
@@ -187,7 +180,7 @@
   <!-- Standard Overlays (Modal wrappers untouched structurally) -->
   <div *ngIf="showCardDetail && selectedCard" class="modal-overlay" (click)="closeCardDetail()">
     <div class="modal-content" style="width:900px" (click)="$event.stopPropagation()">
-      <app-card-detail *ngIf="showCardDetail && selectedCard" [card]="selectedCard" [boardMembers]="boardMembers" (cardUpdated)="onCardUpdated($event)" (cardDeleted)="onCardDeleted($event)" (closed)="closeCardDetail()"></app-card-detail>
+      <app-card-detail *ngIf="showCardDetail && selectedCard" [card]="selectedCard" [boardMembers]="boardMembers" [isGuest]="isGuest" (cardUpdated)="onCardUpdated($event)" (cardDeleted)="onCardDeleted($event)" (closed)="closeCardDetail()"></app-card-detail>
     </div>
   </div>
 
@@ -197,7 +190,7 @@
          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Dashboard Metrics</h2>
          <button mat-icon-button (click)="showAnalytics = false"><mat-icon>close</mat-icon></button>
       </div>
-      <app-board-analytics *ngIf="board" [board]="board" [allCards]="getAllCards()"></app-board-analytics>
+      <app-board-analytics *ngIf="board" [board]="board" [allCards]="getAllCards()" [members]="boardMembers"></app-board-analytics>
     </div>
   </div>
 
@@ -208,8 +201,8 @@
          <button mat-icon-button (click)="showArchive = false"><mat-icon>close</mat-icon></button>
       </div>
       <app-archive-manager 
-         [archivedCards]="getArchivedCards()" 
-         [archivedLists]="getArchivedLists()"
+         [archivedCards]="archivedCardsFetched" 
+         [archivedLists]="archivedListsFetched"
          (restoreCard)="restoreCard($event)"
          (restoreList)="restoreList($event)">
       </app-archive-manager>

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 /* ===== ROOT ===== */
-:host { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+:host { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; display: block; height: 100%; overflow-y: auto; overflow-x: hidden; }
 
 /* ===== PAGE LAYOUT ===== */
 .upgrade-page {

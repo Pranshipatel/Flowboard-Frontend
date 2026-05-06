@@ -27,3 +27,18 @@ export const updateUserRole = createAction(
   '[Admin] Update User Role',
   props<{ userId: number; role: string }>()
 );
+
+export const suspendUser = createAction(
+  '[Admin] Suspend User',
+  props<{ userId: number }>()
+);
+
+export const reactivateUser = createAction(
+  '[Admin] Reactivate User',
+  props<{ userId: number }>()
+);
+
+export const deleteUser = createAction(
+  '[Admin] Delete User',
+  props<{ userId: number }>()
+);

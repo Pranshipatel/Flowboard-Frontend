@@ -10,8 +10,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   standalone: true,
   imports: [CommonModule, MatMenuModule, MatButtonModule, MatIconModule, MatTooltipModule],
   template: `
-    <button mat-icon-button [matMenuTriggerFor]="colorMenu" [matTooltip]="tooltip" (click)="$event.stopPropagation()">
+    <button *ngIf="!label" mat-icon-button [matMenuTriggerFor]="colorMenu" [matTooltip]="tooltip" (click)="$event.stopPropagation()">
       <mat-icon [style.color]="selectedColor || '#94a3b8'">palette</mat-icon>
+    </button>
+    <button *ngIf="label" class="action-btn" style="width:100%; justify-content: flex-start;" [matMenuTriggerFor]="colorMenu" [matTooltip]="tooltip" (click)="$event.stopPropagation()">
+      <mat-icon [style.color]="selectedColor || '#94a3b8'">palette</mat-icon> {{ label }}
     </button>
     <mat-menu #colorMenu="matMenu" class="color-picker-menu">
       <div class="color-grid" (click)="$event.stopPropagation()">
@@ -33,6 +36,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class ColorPickerComponent {
   @Input() selectedColor: string | null = null;
   @Input() tooltip: string = 'Change Color';
+  @Input() label: string = '';
   @Output() colorChange = new EventEmitter<string | null>();
 
   // Tailwind-inspired beautiful colors

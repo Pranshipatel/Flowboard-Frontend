@@ -112,10 +112,6 @@
         <div>
           <h1 class="ws-title">{{ workspace.name }}</h1>
           <div class="ws-badges">
-            <span class="badge" [class.public]="workspace.visibility === 'PUBLIC'">
-              <mat-icon>{{ workspace.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon>
-              {{ workspace.visibility | titlecase }}
-            </span>
             <span class="badge neutral" *ngIf="workspace.description">
               {{ workspace.description | slice:0:40 }}{{ workspace.description!.length > 40 ? '…' : '' }}
             </span>
@@ -123,18 +119,14 @@
         </div>
       </div>
       <div class="header-right">
-        <!-- Premium gate: lock icon for free users on New Board button -->
-        <button class="btn-primary" (click)="isPremium ? (showCreateBoard = !showCreateBoard) : router.navigate(['/upgrade'])">
-          <mat-icon>{{ isPremium ? 'add' : 'lock' }}</mat-icon>
-          {{ isPremium ? 'New Board' : 'Upgrade for Boards' }}
+        <button *ngIf="isOwner()" class="btn-primary" (click)="tryCreateBoard()">
+          <mat-icon>add</mat-icon>
+          New Task
         </button>
-        <button mat-icon-button *ngIf="isOwner()" [matMenuTriggerFor]="wsMenu">
+        <button mat-icon-button *ngIf="isOwner() || isAdmin()" [matMenuTriggerFor]="wsMenu">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #wsMenu="matMenu">
-          <button mat-menu-item (click)="updateVisibility('PUBLIC')"><mat-icon>public</mat-icon> Make Public</button>
-          <button mat-menu-item (click)="updateVisibility('PRIVATE')"><mat-icon>lock</mat-icon> Make Private</button>
-          <mat-divider></mat-divider>
           <button mat-menu-item style="color:#DC2626;" (click)="deleteWorkspace()"><mat-icon color="warn">delete_forever</mat-icon> Delete Workspace</button>
         </mat-menu>
       </div>
@@ -143,7 +135,7 @@
     <!-- Tabs -->
     <div class="ws-tabs">
       <button class="tab-btn" [class.active]="activeTab === 'boards'" (click)="activeTab = 'boards'">
-        <mat-icon>view_kanban</mat-icon> Boards ({{ boards.length }})
+        <mat-icon>view_kanban</mat-icon> Tasks ({{ boards.length }})
       </button>
       <button class="tab-btn" *ngIf="isOwner()" [class.active]="activeTab === 'settings'" (click)="activeTab = 'settings'">
         <mat-icon>settings</mat-icon> Settings
@@ -154,33 +146,57 @@
     <ng-container *ngIf="activeTab === 'boards'">
 
       <div *ngIf="showCreateBoard" class="create-board-card">
-        <div class="create-board-title"><mat-icon>add_box</mat-icon> Create New Board</div>
+        <div class="create-board-title"><mat-icon>add_box</mat-icon> Create New Task</div>
         <form [formGroup]="boardForm" (ngSubmit)="createBoard()">
           <div class="form-row">
             <div class="form-group flex-1">
-              <label class="form-label">Board Name <span class="req">*</span></label>
+              <label class="form-label">Task Name <span class="req">*</span></label>
               <input class="form-input" formControlName="name" placeholder="E.g. Sprint 12" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Visibility</label>
-              <select class="form-input" formControlName="visibility">
-                <option value="PRIVATE">Private</option>
-                <option value="PUBLIC">Public</option>
-              </select>
             </div>
             <div class="form-group">
               <label class="form-label">Theme</label>
               <input type="color" formControlName="background" class="color-swatch" />
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Description</label>
-            <input class="form-input" formControlName="description" placeholder="Optional…" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Due Date</label>
+              <input type="datetime-local" class="form-input" formControlName="dueDate" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-input" formControlName="priority">
+                <option value="">None</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Description</label>
+              <input class="form-input" formControlName="description" placeholder="Optional…" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1" *ngIf="workspace?.visibility === 'PUBLIC'; else privateBoardNotice">
+              <label class="form-label">Board Visibility</label>
+              <select class="form-input" formControlName="visibility">
+                <option value="PRIVATE">Private - only workspace members can view</option>
+                <option value="PUBLIC">Public - visible on the guest page</option>
+              </select>
+            </div>
+            <ng-template #privateBoardNotice>
+              <div class="form-group flex-1 visibility-note">
+                <mat-icon>lock</mat-icon>
+                <span>Boards inside a private workspace are always private.</span>
+              </div>
+            </ng-template>
           </div>
           <div class="form-actions">
             <button type="button" class="btn-ghost" (click)="showCreateBoard = false">Cancel</button>
             <button type="submit" class="btn-primary" [disabled]="creatingBoard || boardForm.invalid">
-              {{ creatingBoard ? 'Creating…' : 'Create Board' }}
+              {{ creatingBoard ? 'Creating…' : 'Create Task' }}
             </button>
           </div>
         </form>
@@ -190,24 +206,11 @@
         <div *ngFor="let i of [1,2,3,4]" class="board-sk sk-pulse"></div>
       </div>
 
-      <!-- Free plan upgrade banner -->
-      <div class="free-plan-banner" *ngIf="!isPremium">
-        <mat-icon>lock</mat-icon>
-        <div class="fpb-text">
-          <strong>Boards require Premium</strong>
-          <span>Upgrade once to unlock unlimited boards, lists, cards &amp; notifications.</span>
-        </div>
-        <button class="fpb-btn" (click)="router.navigate(['/upgrade'])">Upgrade — ₹999</button>
-      </div>
+
 
       <div *ngIf="!loading && boards.length > 0" class="board-grid">
-        <div *ngFor="let board of boards" class="board-card" [class.locked-card]="!isPremium" (click)="openBoard(board.id)">
+        <div *ngFor="let board of boards" class="board-card" (click)="openBoard(board.id)">
           <div class="board-banner" [style.background]="board.background || 'linear-gradient(135deg,#6366F1,#4F46E5)'"></div>
-          <!-- Lock overlay for free users -->
-          <div class="board-lock-overlay" *ngIf="!isPremium">
-            <mat-icon>lock</mat-icon>
-            <span>Premium</span>
-          </div>
           <div class="board-body">
             <div class="board-row">
               <h3 class="board-name">{{ board.name }}</h3>
@@ -219,13 +222,30 @@
                 <div (click)="$event.stopPropagation()">
                   <app-color-picker [selectedColor]="board.background || null" (colorChange)="updateBoardColor(board,$event)"></app-color-picker>
                 </div>
-                <button mat-menu-item style="color:#EF4444;" (click)="deleteBoard(board.id,$event)"><mat-icon color="warn">delete</mat-icon> Delete</button>
+                <button mat-menu-item *ngIf="isOwner() || isAdmin()" style="color:#EF4444;" (click)="deleteBoard(board.id,$event)"><mat-icon color="warn">delete</mat-icon> Delete</button>
               </mat-menu>
             </div>
             <p class="board-desc">{{ board.description || 'No description.' }}</p>
-            <div class="board-footer">
+            <div class="board-visibility-row">
+              <span class="board-visibility-chip" [class.public]="board.visibility === 'PUBLIC'">
+                {{ board.visibility === 'PUBLIC' ? 'Public board' : 'Private board' }}
+              </span>
+            </div>
+            <div class="board-progress-container" style="padding: 0 16px 8px 16px;">
+              <div class="progress-info" style="display: flex; justify-content: space-between; font-size: 11px; color: #64748B; margin-bottom: 4px;">
+                <span>Progress ({{ board.doneCards || 0 }}/{{ board.totalCards || 0 }})</span>
+                <span>{{ board.progressPercentage || 0 }}%</span>
+              </div>
+              <div class="progress-bar-bg" style="width: 100%; height: 6px; background-color: #E2E8F0; border-radius: 3px; overflow: hidden;">
+                <div class="progress-bar-fill" [style.width.%]="board.progressPercentage || 0" style="height: 100%; background-color: #10B981; transition: width 0.3s ease;"></div>
+              </div>
+            </div>
+            <div class="board-footer" style="display:flex; align-items:center;">
               <span class="status-dot" [style.background]="board.isClosed ? '#EF4444' : '#10B981'"></span>
               <span class="status-lbl">{{ board.isClosed ? 'Closed' : 'Active' }}</span>
+              <span *ngIf="isOverdue(board)" class="status-lbl" style="color:#EF4444; margin-left:auto; display:flex; align-items:center; gap:4px; font-weight:600;">
+                 <mat-icon style="font-size:14px; width:14px; height:14px;">warning</mat-icon> Overdue
+              </span>
             </div>
           </div>
         </div>
@@ -233,9 +253,9 @@
 
       <div *ngIf="!loading && boards.length === 0 && !showCreateBoard" class="empty-boards">
         <div class="empty-icon-wrap"><mat-icon>view_kanban</mat-icon></div>
-        <h3>No boards yet</h3>
-        <p>Create your first board to start organizing work.</p>
-        <button class="btn-primary mt-4" (click)="showCreateBoard = true"><mat-icon>add</mat-icon> Create Board</button>
+        <h3>No tasks yet</h3>
+        <p>Create your first task to start organizing work.</p>
+        <button *ngIf="isOwner()" class="btn-primary mt-4" (click)="showCreateBoard = true"><mat-icon>add</mat-icon> Create Task</button>
       </div>
 
     </ng-container>
@@ -243,17 +263,9 @@
     <!-- SETTINGS TAB -->
     <ng-container *ngIf="activeTab === 'settings' && workspace">
       <div class="settings-grid">
-        <div class="settings-card">
-          <h3><mat-icon>public</mat-icon> Visibility</h3>
-          <p>Control who can discover this workspace.</p>
-          <div class="vis-btns">
-            <button class="vis-btn" [class.active]="workspace.visibility === 'PRIVATE'" (click)="updateVisibility('PRIVATE')"><mat-icon>lock</mat-icon> Private</button>
-            <button class="vis-btn" [class.active]="workspace.visibility === 'PUBLIC'" (click)="updateVisibility('PUBLIC')"><mat-icon>public</mat-icon> Public</button>
-          </div>
-        </div>
         <div class="settings-card danger-card">
           <h3><mat-icon>warning</mat-icon> Danger Zone</h3>
-          <p>Permanently remove this workspace and all boards inside it.</p>
+          <p>Permanently remove this workspace and all tasks inside it.</p>
           <button class="btn-danger" (click)="deleteWorkspace()">Delete Workspace</button>
         </div>
       </div>

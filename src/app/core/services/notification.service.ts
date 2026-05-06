@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of, throwError, interval, Subscription } from 'rxjs';
+import { tap, catchError, switchMap, filter } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Notification } from '../models/notification.model';
 import { AuthService } from './auth.service';
@@ -16,9 +16,43 @@ export class NotificationService {
   private _unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this._unreadCount.asObservable();
 
+  private _notifications = new BehaviorSubject<Notification[]>([]);
+  notifications$ = this._notifications.asObservable();
+
+  private pollSubscription?: Subscription;
+
+  constructor() {
+    this.startPolling();
+  }
+
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'X-User-Id': String(this.authService.getUserId() || '')
+    });
+  }
+
+  startPolling(): void {
+    if (this.pollSubscription) return;
+    this.pollSubscription = interval(5000).pipe(
+      filter(() => !!this.authService.getUserId())
+    ).subscribe(() => {
+      this.refreshUnreadCount();
+      this.refreshNotifications();
+    });
+  }
+
+  stopPolling(): void {
+    if (this.pollSubscription) {
+      this.pollSubscription.unsubscribe();
+      this.pollSubscription = undefined;
+    }
+  }
+
+  refreshNotifications(): void {
+    if (!this.authService.getUserId()) return;
+    this.http.get<Notification[]>(this.base, { headers: this.getHeaders() }).subscribe({
+      next: res => this._notifications.next(res || []),
+      error: err => console.error('[NotificationService] Error refreshing notifications', err)
     });
   }
 
@@ -35,13 +69,8 @@ export class NotificationService {
 
   // GET /
   getNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(this.base, { headers: this.getHeaders() }).pipe(
-      tap(res => console.log('[NotificationService] Fetched notifications', res.length)),
-      catchError(err => {
-        console.error('[NotificationService] Error fetching notifications', err);
-        return of([]);
-      })
-    );
+    this.refreshNotifications();
+    return this.notifications$;
   }
 
   // Alias
@@ -72,7 +101,11 @@ export class NotificationService {
   // PUT /{id}/read
   markAsRead(id: number): Observable<Notification> {
     return this.http.put<Notification>(`${this.base}/${id}/read`, {}, { headers: this.getHeaders() }).pipe(
-      tap(res => console.log(`[NotificationService] Marked ${id} as read`, res)),
+      tap(res => {
+        console.log(`[NotificationService] Marked ${id} as read`, res);
+        this.refreshUnreadCount();
+        this.refreshNotifications();
+      }),
       catchError(err => {
         console.error(`[NotificationService] Error marking ${id} as read`, err);
         return throwError(() => err);
@@ -83,7 +116,11 @@ export class NotificationService {
   // PUT /read/all
   markAllAsRead(): Observable<string> {
     return this.http.put(`${this.base}/read/all`, {}, { headers: this.getHeaders(), responseType: 'text' }).pipe(
-      tap(res => console.log('[NotificationService] Marked all as read', res)),
+      tap(res => {
+        console.log('[NotificationService] Marked all as read', res);
+        this.refreshUnreadCount();
+        this.refreshNotifications();
+      }),
       catchError(err => {
         console.error('[NotificationService] Error marking all as read', err);
         return throwError(() => err);
@@ -94,7 +131,11 @@ export class NotificationService {
   // DELETE /{id}
   delete(id: number): Observable<string> {
     return this.http.delete(`${this.base}/${id}`, { headers: this.getHeaders(), responseType: 'text' }).pipe(
-      tap(res => console.log(`[NotificationService] Deleted ${id}`, res)),
+      tap(res => {
+        console.log(`[NotificationService] Deleted ${id}`, res);
+        this.refreshUnreadCount();
+        this.refreshNotifications();
+      }),
       catchError(err => {
         console.error(`[NotificationService] Error deleting ${id}`, err);
         return throwError(() => err);
@@ -105,7 +146,11 @@ export class NotificationService {
   // DELETE /read/all
   deleteRead(): Observable<string> {
     return this.http.delete(`${this.base}/read/all`, { headers: this.getHeaders(), responseType: 'text' }).pipe(
-      tap(res => console.log('[NotificationService] Deleted read notifications', res)),
+      tap(res => {
+        console.log('[NotificationService] Deleted read notifications', res);
+        this.refreshUnreadCount();
+        this.refreshNotifications();
+      }),
       catchError(err => {
         console.error('[NotificationService] Error deleting read notifications', err);
         return throwError(() => err);

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { of, forkJoin } from 'rxjs';
-import { map, catchError, switchMap, withLatestFrom } from 'rxjs/operators';
+import { map, catchError, switchMap, concatMap, withLatestFrom } from 'rxjs/operators';
 import { BoardService } from '../../core/services/board.service';
 import { ListService } from '../../core/services/list.service';
 import { CardService } from '../../core/services/card.service';
@@ -91,7 +91,7 @@ export class BoardEffects {
   addList$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BoardActions.addList),
-      switchMap(({ boardId, name }) =>
+      concatMap(({ boardId, name }) =>
         this.listService.create({ boardId, name }).pipe(
           map(list => BoardActions.addListSuccess({ list })),
           catchError(error => of(BoardActions.addListFailure({

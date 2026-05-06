@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -34,7 +34,7 @@ import { ColorPickerComponent } from '../../../shared/components/color-picker.co
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private fb               = inject(FormBuilder);
   private auth             = inject(AuthService);
   private workspaceService = inject(WorkspaceService);
@@ -42,6 +42,8 @@ export class DashboardComponent implements OnInit {
   public  router           = inject(Router);
   private snack            = inject(MatSnackBar);
   private dialog           = inject(MatDialog);
+
+  private archivedSub?: any;
 
   workspaces: Workspace[] = [];
   currentUser: UserProfile | null = null;
@@ -71,18 +73,31 @@ export class DashboardComponent implements OnInit {
         // Load subscription using real userId (fixes /payments/subscription 500 error)
         this.paymentService.getSubscriptionStatus(u.id).subscribe();
         this.loadWorkspaces(u.id);
+
+        this.archivedSub = this.workspaceService.archivedUpdated$.subscribe(() => {
+           this.loadWorkspaces(u.id);
+        });
       },
       error: () => this.auth.logout()
     });
   }
 
+  ngOnDestroy() {
+    if (this.archivedSub) this.archivedSub.unsubscribe();
+  }
+
   loadWorkspaces(userId: number) {
     this.loading = true;
     this.workspaceService.getByMember(userId).subscribe({
-      next: ws => { this.workspaces = ws; this.loading = false; },
+      next: ws => { 
+        this.workspaces = ws.filter(w => !this.workspaceService.isWorkspaceArchived(userId, w.id)); 
+        this.loading = false; 
+      },
       error: () => { this.loading = false; this.snack.open('Failed to load workspaces', 'Close', { duration: 3000 }); }
     });
   }
+
+
 
   tryCreateWorkspace() {
     this.showCreateForm = true;
@@ -132,6 +147,31 @@ export class DashboardComponent implements OnInit {
 
   getInitials(name: string) { return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); }
   logout() { this.auth.logout(); }
+
+  isPinned(id: number): boolean {
+    if (!this.currentUser) return false;
+    return this.workspaceService.isWorkspacePinned(this.currentUser.id, id);
+  }
+
+  togglePin(id: number, event: Event) {
+    event.stopPropagation();
+    if (!this.currentUser) return;
+    this.workspaceService.togglePinWorkspace(this.currentUser.id, id);
+  }
+
+  isArchived(id: number): boolean {
+    if (!this.currentUser) return false;
+    return this.workspaceService.isWorkspaceArchived(this.currentUser.id, id);
+  }
+
+  toggleArchive(id: number, event: Event) {
+    event.stopPropagation();
+    if (!this.currentUser) return;
+    this.workspaceService.toggleArchiveWorkspace(this.currentUser.id, id);
+    this.workspaces = this.workspaces.filter(w => w.id !== id);
+    this.snack.open('Workspace archived', 'Close', { duration: 2000 });
+  }
+
   getWorkspaceColor(id: number): string | null { return localStorage.getItem(`ws-color-${id}`); }
   setWorkspaceColor(id: number, color: string | null) {
     color ? localStorage.setItem(`ws-color-${id}`, color) : localStorage.removeItem(`ws-color-${id}`);

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 import {
@@ -15,6 +15,69 @@ export class WorkspaceService {
 
   private http = inject(HttpClient);
   private base = `${environment.apiBaseUrl}/workspaces`;
+
+  private pinnedUpdatedSubject = new BehaviorSubject<void>(undefined);
+  public pinnedUpdated$ = this.pinnedUpdatedSubject.asObservable();
+
+  private archivedUpdatedSubject = new BehaviorSubject<void>(undefined);
+  public archivedUpdated$ = this.archivedUpdatedSubject.asObservable();
+
+  // ─── Pinned Workspaces ─────────────────────────────────────────────────────
+
+  getPinnedWorkspaceIds(userId: number): number[] {
+    const raw = localStorage.getItem(`pinned_ws_${userId}`);
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { return []; }
+    }
+    return [];
+  }
+
+  togglePinWorkspace(userId: number, workspaceId: number): void {
+    let pinned = this.getPinnedWorkspaceIds(userId);
+    if (pinned.includes(workspaceId)) {
+      pinned = pinned.filter(id => id !== workspaceId);
+    } else {
+      pinned.push(workspaceId);
+    }
+    localStorage.setItem(`pinned_ws_${userId}`, JSON.stringify(pinned));
+    this.pinnedUpdatedSubject.next();
+  }
+
+  isWorkspacePinned(userId: number, workspaceId: number): boolean {
+    return this.getPinnedWorkspaceIds(userId).includes(workspaceId);
+  }
+
+  // ─── Archived Workspaces ───────────────────────────────────────────────────
+
+  getArchivedWorkspaceIds(userId: number): number[] {
+    const raw = localStorage.getItem(`archived_ws_${userId}`);
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { return []; }
+    }
+    return [];
+  }
+
+  toggleArchiveWorkspace(userId: number, workspaceId: number): void {
+    let archived = this.getArchivedWorkspaceIds(userId);
+    if (archived.includes(workspaceId)) {
+      archived = archived.filter(id => id !== workspaceId);
+    } else {
+      archived.push(workspaceId);
+      // Unpin if archiving
+      let pinned = this.getPinnedWorkspaceIds(userId);
+      if (pinned.includes(workspaceId)) {
+        pinned = pinned.filter(id => id !== workspaceId);
+        localStorage.setItem(`pinned_ws_${userId}`, JSON.stringify(pinned));
+        this.pinnedUpdatedSubject.next();
+      }
+    }
+    localStorage.setItem(`archived_ws_${userId}`, JSON.stringify(archived));
+    this.archivedUpdatedSubject.next();
+  }
+
+  isWorkspaceArchived(userId: number, workspaceId: number): boolean {
+    return this.getArchivedWorkspaceIds(userId).includes(workspaceId);
+  }
 
   getByMember(userId: number): Observable<Workspace[]> {
     return this.http.get<Workspace[]>(`${this.base}/member/${userId}`);

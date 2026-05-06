@@ -12,6 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { AuthService } from '../../../core/services/auth.service';
+import { Store } from '@ngrx/store';
+import * as AuthActions from '../../../store/auth/auth.actions';
 
 @Component({
   selector: 'app-login',
@@ -29,10 +31,11 @@ export class LoginComponent {
   private fb     = inject(FormBuilder);
   private auth   = inject(AuthService);
   private router = inject(Router);
+  private store  = inject(Store);
 
   form: FormGroup = this.fb.group({
-    email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    email:    ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$')]],
+    password: ['', [Validators.required, Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$')]]
   });
 
   loading       = false;
@@ -48,11 +51,10 @@ export class LoginComponent {
     this.errorMessage = '';
 
     this.auth.login(this.form.value).subscribe({
-      next: () => {
-        this.auth.getProfile().subscribe({
-          next: () => this.router.navigate(['/dashboard']),
-          error: ()=> this.router.navigate(['/dashboard'])
-        });
+      next: (res: any) => {
+        // Dispatch to store so the app knows the user is authenticated
+        this.store.dispatch(AuthActions.loginSuccess({ response: res }));
+        // auth.effects.ts will handle the redirection!
       },
       error: err => {
         this.loading = false;

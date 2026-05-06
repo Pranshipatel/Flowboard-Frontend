@@ -38,8 +38,15 @@ export class AuthEffects {
           if(payload?.role){
             localStorage.setItem('userRole', payload.role);
           }
+          
+          if (payload?.role === 'PLATFORM_ADMIN') {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']); 
+          }
+        } else {
+          this.router.navigate(['/dashboard']);
         }
-        this.router.navigate(['/dashboard']); 
       }),
       map(() => AuthActions.getProfile())
     )
@@ -71,7 +78,7 @@ export class AuthEffects {
       ofType(AuthActions.logout),
       tap(() => {
         localStorage.removeItem('token');
-        this.router.navigate(['/login']);
+        this.router.navigate(['/guest']);
       })
     ),
     { dispatch: false }

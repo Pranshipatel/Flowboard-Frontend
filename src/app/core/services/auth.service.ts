@@ -33,7 +33,7 @@ export class AuthService {
   logout(): void {
     this.http.post(`${this.base}/logout`, {}, { responseType: 'text' }).subscribe({ error: () => {} });
     localStorage.clear();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/guest']);
   }
 
   forgotPassword(email: string): Observable<string> { return this.http.post(`${this.base}/forgot-password`, { email }, { responseType: 'text' }); }

@@ -7,7 +7,8 @@ import {
   Board,
   CreateBoardRequest,
   UpdateBoardRequest,
-  BoardAnalytics
+  BoardAnalytics,
+  PublicBoardDetail
 } from '../models/board.model';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +31,18 @@ export class BoardService {
     return this.http.get<Board[]>(
       `${this.base}/member/${userId}`
     );
+  }
+
+  getPublic(): Observable<Board[]> {
+    return this.http.get<Board[]>(`${this.base}/public`);
+  }
+
+  getPublicDetail(id: number): Observable<PublicBoardDetail> {
+    return this.http.get<PublicBoardDetail>(`${this.base}/public/${id}/details`);
+  }
+
+  getPublicWorkspaceDetails(workspaceId: number): Observable<PublicBoardDetail[]> {
+    return this.http.get<PublicBoardDetail[]>(`${this.base}/public/workspace/${workspaceId}/details`);
   }
 
   create(data: CreateBoardRequest): Observable<Board> {

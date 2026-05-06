@@ -31,7 +31,7 @@
         <mat-form-field appearance="outline" class="w-full">
           <input matInput formControlName="email" type="email" placeholder="you@example.com" />
           <mat-error *ngIf="email.hasError('required')">Email is required</mat-error>
-          <mat-error *ngIf="email.hasError('email')">Enter a valid email</mat-error>
+          <mat-error *ngIf="email.hasError('pattern')">Enter a valid email address</mat-error>
         </mat-form-field>
 
         <label class="modern-label">Password</label>
@@ -41,6 +41,7 @@
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           <mat-error *ngIf="password.hasError('required')">Password is required</mat-error>
+          <mat-error *ngIf="password.hasError('pattern')" style="font-size: 10px; line-height: 1.2;">Must be 8+ chars with upper, lower, number, & special char</mat-error>
         </mat-form-field>
 
         <div class="form-actions">

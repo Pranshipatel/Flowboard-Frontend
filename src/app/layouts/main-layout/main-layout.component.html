@@ -6,12 +6,12 @@
       <div class="brand-icon">F</div>
       <button class="icon-nav active" routerLink="/dashboard"><mat-icon>home</mat-icon></button>
       <button class="icon-nav" routerLink="/calendar"><mat-icon>calendar_today</mat-icon></button>
-      <button class="icon-nav"><mat-icon>group</mat-icon></button>
       <button class="icon-nav" routerLink="/profile"><mat-icon>settings</mat-icon></button>
     </div>
     
     <div class="bottom-actions">
-      <button class="icon-nav"><mat-icon>exit_to_app</mat-icon></button>
+      <button class="icon-nav" [matMenuTriggerFor]="archiveMenu" matTooltip="Archived Workspaces" matTooltipPosition="right"><mat-icon>archive</mat-icon></button>
+      
       <button class="profile-nav" [matMenuTriggerFor]="userMenu">
         <div class="avatar-mini" [style.background]="(user$ | async)?.avatarUrl ? 'url(' + (user$ | async)!.avatarUrl + ') center/cover' : '#DFE1E6'">
           {{ (user$ | async)?.avatarUrl ? '' : ((user$ | async)?.fullName?.[0] || 'U') }}
@@ -22,18 +22,36 @@
         <div class="p-4">
            <p class="font-bold">{{ (user$ | async)?.fullName }}</p>
            <!-- Premium badge -->
-           <div *ngIf="!isFreeUser()" class="menu-plan-badge menu-plan-badge--premium">
+           <div *ngIf="!isFreeUser() && !isAdmin()" class="menu-plan-badge menu-plan-badge--premium">
              <mat-icon style="font-size:13px;width:13px;height:13px;color:#fde68a;margin-right:4px">workspace_premium</mat-icon>
              {{ planName() }}
            </div>
            <!-- Free badge with upgrade link -->
-           <div *ngIf="isFreeUser()" class="menu-plan-badge menu-plan-badge--free" routerLink="/upgrade" style="cursor:pointer">
+           <div *ngIf="isFreeUser() && !isAdmin()" class="menu-plan-badge menu-plan-badge--free" routerLink="/upgrade" style="cursor:pointer">
              <mat-icon style="font-size:13px;width:13px;height:13px;margin-right:4px">lock_open</mat-icon>
              Free Plan · <strong style="margin-left:2px">Upgrade ↗</strong>
+           </div>
+           <!-- Admin badge -->
+           <div *ngIf="isAdmin()" class="menu-plan-badge bg-indigo-500 text-white border-indigo-600">
+             <mat-icon style="font-size:13px;width:13px;height:13px;margin-right:4px">admin_panel_settings</mat-icon>
+             Platform Admin
            </div>
         </div>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="logout()">Sign out</button>
+      </mat-menu>
+
+      <mat-menu #archiveMenu="matMenu" class="archive-menu">
+        <div class="p-4 w-64" (click)="$event.stopPropagation()">
+           <h3 class="font-bold mb-2">Archived Workspaces</h3>
+           <div *ngIf="archivedWorkspaces.length === 0" class="text-sm text-slate-500">No archived workspaces.</div>
+           <div *ngFor="let ws of archivedWorkspaces" class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0 hover:bg-slate-50">
+             <span class="text-sm truncate mr-2 font-medium" style="max-width: 150px; cursor: pointer;" [routerLink]="['/workspace', ws.id]">{{ ws.name }}</span>
+             <button mat-icon-button (click)="unarchiveWorkspace(ws.id, $event)" matTooltip="Unarchive" class="text-emerald-600" style="width: 28px; height: 28px; padding: 4px;">
+               <mat-icon style="font-size: 18px; width: 18px; height: 18px; display: block;">unarchive</mat-icon>
+             </button>
+           </div>
+        </div>
       </mat-menu>
     </div>
   </aside>
@@ -48,18 +66,20 @@
     <div class="sidebar-nav">
       <a routerLink="/dashboard" class="side-link"><mat-icon>check_circle_outline</mat-icon> My Tasks</a>
       <a routerLink="/dashboard" class="side-link active"><mat-icon>grid_view</mat-icon> All Projects</a>
+      <a routerLink="/public-workspaces" class="side-link"><mat-icon>travel_explore</mat-icon> Public Workspaces</a>
       <a routerLink="/calendar" class="side-link"><mat-icon>calendar_month</mat-icon> Calendar</a>
-      <a class="side-link"><mat-icon>group</mat-icon> Teams</a>
       <a routerLink="/profile" class="side-link"><mat-icon>settings</mat-icon> Settings</a>
     </div>
 
-    <!-- Pinned Workspaces (Visual stubs representing routing contexts) -->
-    <div class="sidebar-projects">
-      <p class="projects-title">PINNED PROJECTS</p>
-      <a class="side-link">Product Launch '26</a>
-      <a class="side-link">Marketing Campaign</a>
-      <a class="side-link">Engineering Roadmap</a>
+    <!-- Pinned Workspaces -->
+    <div class="sidebar-projects" *ngIf="pinnedWorkspaces.length > 0">
+      <p class="projects-title">PINNED WORKSPACES</p>
+      <a *ngFor="let ws of pinnedWorkspaces" [routerLink]="['/workspace', ws.id]" class="side-link">
+        <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 8px; margin-top: 2px;">workspaces</mat-icon>
+        {{ ws.name }}
+      </a>
     </div>
+
   </aside>
 
   <!-- RIGHT MAIN AREA -->
@@ -83,7 +103,7 @@
            </div>
            
            <div class="search-results-list" *ngIf="!isSearching && filteredSearchResults.length > 0">
-              <div class="search-result-item" *ngFor="let result of filteredSearchResults" (click)="navigateToResult(result.route)">
+              <div class="search-result-item" *ngFor="let result of filteredSearchResults" (mousedown)="navigateToResult(result.route); $event.preventDefault()">
                  <div class="result-icon bg-blue-50 text-primary">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">{{ result.icon }}</mat-icon>
                  </div>
@@ -105,18 +125,23 @@
 
       <div class="nav-right">
         <!-- Upgrade Button for Free Users -->
-        <button *ngIf="isFreeUser()" class="upgrade-nav-btn" routerLink="/upgrade">
+        <button *ngIf="isFreeUser() && !isAdmin()" class="upgrade-nav-btn" routerLink="/upgrade">
            <mat-icon>workspace_premium</mat-icon> Upgrade
         </button>
 
         <!-- Premium Badge for Paid Users -->
-        <div *ngIf="!isFreeUser()" class="premium-badge">
+        <div *ngIf="!isFreeUser() && !isAdmin()" class="premium-badge">
           <mat-icon class="premium-icon">workspace_premium</mat-icon>
           <span>{{ planName() }}</span>
         </div>
         
-        <app-notification-center></app-notification-center>
-        <button class="add-global-btn"><mat-icon>add</mat-icon></button>
+        <!-- Admin Badge for Admins -->
+        <div *ngIf="isAdmin()" class="premium-badge" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+          <mat-icon class="premium-icon">admin_panel_settings</mat-icon>
+          <span>Admin</span>
+        </div>
+        
+        <app-notification-dropdown></app-notification-dropdown>
         <div class="avatar-sm" style="cursor: pointer" routerLink="/profile">
            <img *ngIf="(user$ | async)?.avatarUrl" [src]="(user$ | async)!.avatarUrl" alt="Avatar"/>
            <span *ngIf="!(user$ | async)?.avatarUrl">{{ (user$ | async)?.fullName?.[0] || 'U' }}</span>

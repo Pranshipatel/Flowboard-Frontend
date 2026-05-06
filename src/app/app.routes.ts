@@ -1,9 +1,18 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { subscriptionGuard } from './core/guards/subscription.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'guest', pathMatch: 'full' },
+  {
+    path: 'guest',
+    loadComponent: () => import('./pages/guest/guest.component').then(m => m.GuestComponent)
+  },
+  {
+    path: 'guest/board/:id',
+    loadComponent: () => import('./pages/board/board-view/board-view.component').then(m => m.BoardViewComponent)
+  },
   {
     path: 'login',
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
@@ -29,6 +38,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/oauth2-callback/oauth2-callback.component').then(m => m.Oauth2CallbackComponent)
   },
   {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/admin-panel.component').then(m => m.AdminPanelComponent)
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./layouts/main-layout/main.layout.component').then(m => m.MainLayoutComponent),
@@ -36,6 +50,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'public-workspaces',
+        loadComponent: () => import('./pages/public-workspaces/public-workspaces.component').then(m => m.PublicWorkspacesComponent)
       },
       {
         path: 'workspace/:id',
@@ -47,7 +65,6 @@ export const routes: Routes = [
       },
       {
         path: 'board/:id',
-        canActivate: [subscriptionGuard],
         loadComponent: () => import('./pages/board/board-view/board-view.component').then(m => m.BoardViewComponent)
       },
       {
@@ -64,14 +81,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/profile/profile-view/profile-view.component').then(m => m.ProfileViewComponent)
       },
       {
-        path: 'admin',
-        loadComponent: () => import('./pages/admin/admin-panel.component').then(m => m.AdminPanelComponent)
-      },
-      {
         path: 'upgrade',
         loadComponent: () => import('./pages/payment/upgrade/upgrade.component').then(m => m.UpgradeComponent)
       }
     ]
   },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'guest' }
 ];
