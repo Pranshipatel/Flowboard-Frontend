@@ -163,6 +163,13 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
     }
   }
 
+  formatMessage(msg: string): string {
+    if (!msg) return '';
+    let formatted = msg.replace(/'([^']+)'/g, "<b>'$1'</b>");
+    formatted = formatted.replace(/\b(MEMBER|ADMIN|Member|Admin)\b/gi, "<b>$1</b>");
+    return formatted;
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

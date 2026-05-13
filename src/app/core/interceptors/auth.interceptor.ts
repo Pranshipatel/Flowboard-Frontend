@@ -7,6 +7,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const router = inject(Router);
 
+  const isPublicCatalogueRequest =
+    req.url.includes('/workspaces/public') ||
+    req.url.includes('/boards/public');
+
+  if (isPublicCatalogueRequest) {
+    return next(req);
+  }
+
   const token  = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
 

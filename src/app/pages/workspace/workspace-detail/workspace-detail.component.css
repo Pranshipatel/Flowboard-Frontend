@@ -113,7 +113,7 @@
 .sk-pulse { animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
-.board-card { background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.board-card { position: relative; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .board-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
 .board-banner { height: 56px; }
 .board-body { padding: 16px; }
@@ -129,7 +129,6 @@
 .status-lbl { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ── Free-plan board lock overlay ─────────────────────────────── */
-.board-card { position: relative; }
 .locked-card { cursor: default !important; }
 .locked-card:hover { transform: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
 

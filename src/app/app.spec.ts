@@ -16,17 +16,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'flowboard-ui' title`, () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('flowboard-ui');
-  });
-
-  it('should render title', () => {
+  it('should render the routed application shell', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent)
-      .toContain('Hello, flowboard-ui');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

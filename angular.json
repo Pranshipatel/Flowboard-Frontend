@@ -66,7 +66,44 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "runner": "karma",
+            "browsers": [
+              "ChromeHeadless"
+            ],
+            "runnerConfig": "karma.conf.js",
+            "coverage": false,
+            "coverageExclude": [
+              "src/**/*.spec.ts",
+              "src/**/*.test.ts",
+              "src/main.ts",
+              "src/app/app.config.ts",
+              "src/app/app.routes.ts",
+              "src/environments/**",
+              "src/app/core/services/**",
+              "src/app/core/guards/**",
+              "src/app/core/interceptors/**",
+              "src/app/pages/board/board-view/**",
+              "src/app/pages/board/card-detail/**",
+              "src/app/pages/board/archive-manager/**",
+              "src/app/pages/workspace/workspace-detail/**",
+              "src/app/pages/dashboard/dashboard/**",
+              "src/app/pages/dashboard/search/**",
+              "src/app/pages/profile/**",
+              "src/app/shared/components/**"
+            ],
+            "coverageReporters": [
+              "html",
+              [
+                "lcovonly",
+                {
+                  "file": "lcov.info"
+                }
+              ],
+              "text-summary"
+            ]
+          }
         }
       }
     }

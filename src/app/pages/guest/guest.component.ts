@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { catchError, forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { WorkspaceService } from '../../core/services/workspace.service';
 import { BoardService } from '../../core/services/board.service';
@@ -45,24 +46,24 @@ export class GuestComponent implements OnInit {
 
   loadPublicBoards(): void {
     this.loadingPublic = true;
-    this.workspaceService.getPublic().subscribe({
-      next: workspaces => {
+    forkJoin({
+      workspaces: this.workspaceService.getPublic().pipe(catchError(() => of([] as Workspace[]))),
+      boards: this.boardService.getPublic().pipe(catchError(() => of([] as Board[])))
+    }).subscribe({
+      next: ({ workspaces, boards }) => {
         this.publicWorkspaces = workspaces;
+        const publicWorkspaceIds = new Set(this.publicWorkspaces.map(workspace => workspace.id));
+        this.publicBoards = boards.filter(board =>
+          board.visibility === 'PUBLIC' &&
+          !board.isClosed &&
+          publicWorkspaceIds.has(board.workspaceId)
+        );
         this.expandedWorkspaceId = this.publicWorkspaces[0]?.id ?? null;
         if (this.expandedWorkspaceId) {
           this.loadWorkspaceDetails(this.expandedWorkspaceId);
         }
 
-        this.boardService.getPublic().subscribe({
-          next: boards => {
-            this.publicBoards = boards;
-            this.loadingPublic = false;
-          },
-          error: () => {
-            this.publicBoards = [];
-            this.loadingPublic = false;
-          }
-        });
+        this.loadingPublic = false;
       },
       error: () => {
         this.publicWorkspaces = [];
@@ -72,8 +73,16 @@ export class GuestComponent implements OnInit {
     });
   }
 
+  getAllPublicBoards(): Board[] {
+    return this.publicBoards;
+  }
+
   getPublicBoards(workspaceId: number): Board[] {
     return this.publicBoards.filter(board => board.workspaceId === workspaceId && board.visibility === 'PUBLIC');
+  }
+
+  getBoardCardTotal(board: Board): number {
+    return board.totalCards ?? 0;
   }
 
   toggleWorkspace(workspaceId: number): void {
@@ -87,18 +96,24 @@ export class GuestComponent implements OnInit {
     this.loadingWorkspaceDetails[workspaceId] = true;
     this.boardService.getPublicWorkspaceDetails(workspaceId).subscribe({
       next: boards => {
-        this.publicBoardDetails[workspaceId] = boards;
+        this.publicBoardDetails[workspaceId] = boards.length > 0
+          ? boards
+          : this.getPublicBoards(workspaceId).map(board => this.toPublicBoardDetail(board));
         this.loadingWorkspaceDetails[workspaceId] = false;
       },
       error: () => {
-        this.publicBoardDetails[workspaceId] = [];
+        this.publicBoardDetails[workspaceId] = this.getPublicBoards(workspaceId)
+          .map(board => this.toPublicBoardDetail(board));
         this.loadingWorkspaceDetails[workspaceId] = false;
       }
     });
   }
 
   getPublicBoardDetails(workspaceId: number): PublicBoardDetail[] {
-    return this.publicBoardDetails[workspaceId] ?? [];
+    const details = this.publicBoardDetails[workspaceId] ?? [];
+    return details.length > 0
+      ? details
+      : this.getPublicBoards(workspaceId).map(board => this.toPublicBoardDetail(board));
   }
 
   getBoardCardCount(board: PublicBoardDetail): number {
@@ -107,5 +122,20 @@ export class GuestComponent implements OnInit {
 
   getInitials(name: string): string {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  private toPublicBoardDetail(board: Board): PublicBoardDetail {
+    return {
+      id: board.id,
+      workspaceId: board.workspaceId,
+      name: board.name,
+      description: board.description,
+      background: board.background,
+      visibility: 'PUBLIC',
+      isClosed: board.isClosed,
+      dueDate: board.dueDate,
+      priority: board.priority,
+      lists: []
+    };
   }
 }

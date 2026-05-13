@@ -9,15 +9,20 @@
 <mat-menu #notifMenu="matMenu" panelClass="premium-notif-menu-panel" xPosition="before">
   
   <!-- Premium Glassy Header -->
-  <div class="px-5 py-4 flex justify-between items-center bg-white/90 backdrop-blur-md border-b border-slate-100 sticky top-0 z-20 shadow-sm" (click)="$event.stopPropagation()">
-    <div class="flex items-center gap-2">
-      <h3 class="m-0 text-[16px] font-bold text-slate-800 tracking-tight">Notifications</h3>
-      <span *ngIf="unreadCount > 0" class="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{{ unreadCount }} new</span>
+  <div class="px-6 py-5 flex items-center bg-[#fcfcfc] border-b border-slate-100 sticky top-0 z-20" (click)="$event.stopPropagation()">
+    <h3 class="m-0 text-xl font-medium text-slate-800 tracking-tight">Notifications</h3>
+    
+    <div *ngIf="unreadCount > 0" class="flex flex-col items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full leading-none shadow-sm ml-4 shrink-0">
+      <span class="text-lg font-bold">{{ unreadCount }}</span>
+      <span class="text-[10px] font-medium uppercase mt-0.5 tracking-wider">new</span>
     </div>
     
-    <div class="flex gap-3" *ngIf="hasAccess">
-      <button class="text-[12px] font-semibold text-slate-500 hover:text-blue-600 bg-transparent border-none cursor-pointer p-0 transition-colors flex items-center gap-1" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
-        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">done_all</mat-icon> Mark all read
+    <div class="flex-1"></div>
+    
+    <div *ngIf="hasAccess">
+      <button class="text-sm font-medium text-slate-500 hover:text-blue-600 bg-transparent border-none cursor-pointer p-0 transition-colors flex flex-col items-end leading-tight" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+        <span>Mark all</span>
+        <span>as read</span>
       </button>
     </div>
   </div>
@@ -59,36 +64,35 @@
       
       <div *ngIf="!isLoading">
         <div *ngFor="let n of notifications" 
-             class="notif-item p-4 border-b border-slate-100/50 hover:bg-slate-50 cursor-pointer flex gap-4 group relative transition-all duration-200" 
-             [class.bg-blue-50/30]="!n.isRead"
+             class="notif-item px-6 py-5 border-b border-slate-100 hover:bg-slate-50 cursor-pointer flex items-start gap-4 group relative transition-all duration-200 bg-white" 
              (click)="markAsRead(n)">
              
           <!-- Colored minimal icon based on type -->
-          <div class="rounded-xl flex items-center justify-center h-10 w-10 shrink-0 shadow-sm transition-transform group-hover:scale-105"
+          <div class="rounded-2xl flex items-center justify-center h-12 w-12 shrink-0"
                [ngClass]="{
-                 'bg-indigo-100 text-indigo-600': n.type === 'COMMENT',
-                 'bg-emerald-100 text-emerald-600': n.type === 'ASSIGNMENT',
-                 'bg-amber-100 text-amber-600': n.type === 'DUE_DATE',
-                 'bg-rose-100 text-rose-600': n.type === 'OVERDUE',
-                 'bg-slate-100 text-slate-600': n.type !== 'COMMENT' && n.type !== 'ASSIGNMENT' && n.type !== 'DUE_DATE' && n.type !== 'OVERDUE'
+                 'bg-indigo-50 text-indigo-600': n.type === 'COMMENT',
+                 'bg-[#dcfce7] text-[#0f766e]': n.type === 'ASSIGNMENT',
+                 'bg-amber-50 text-amber-600': n.type === 'DUE_DATE',
+                 'bg-rose-50 text-rose-600': n.type === 'OVERDUE',
+                 'bg-slate-50 text-slate-600': n.type !== 'COMMENT' && n.type !== 'ASSIGNMENT' && n.type !== 'DUE_DATE' && n.type !== 'OVERDUE'
                }">
-             <mat-icon style="font-size: 20px; width: 20px; height: 20px;">{{ getTypeIcon(n.type) }}</mat-icon>
+             <mat-icon style="font-size: 24px; width: 24px; height: 24px;">{{ getTypeIcon(n.type) }}</mat-icon>
           </div>
           
-          <div class="flex-1 pr-6 pt-0.5">
-            <p class="m-0 text-[13px] text-slate-700 leading-relaxed" [class.font-semibold]="!n.isRead" [class.text-slate-900]="!n.isRead">
-              {{ n.message }}
+          <div class="flex-1 pr-8 pt-0.5">
+            <p class="m-0 text-[15px] text-slate-700 leading-relaxed font-normal" 
+               [innerHTML]="formatMessage(n.message)">
             </p>
-            <p class="m-0 text-[11px] mt-1.5 font-medium" [class.text-blue-500]="!n.isRead" [class.text-slate-400]="n.isRead">
+            <p class="m-0 text-sm mt-1.5 font-medium text-slate-400">
               {{ n.createdAt | date:'MMM d, h:mm a' }}
             </p>
           </div>
           
           <!-- Unread Dot indicator -->
-          <div *ngIf="!n.isRead" class="unread-indicator absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_6px_rgba(59,130,246,0.6)]"></div>
+          <div *ngIf="!n.isRead" class="unread-indicator absolute right-6 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
           
           <!-- Quick action Delete button -->
-          <button class="delete-btn absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 hover:bg-red-50 bg-white border border-slate-200 shadow-sm p-1.5 cursor-pointer flex items-center justify-center rounded-full" 
+          <button class="delete-btn absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 hover:bg-red-50 bg-white border border-slate-200 shadow-sm p-1.5 cursor-pointer flex items-center justify-center rounded-full" 
                   (click)="deleteNotification($event, n.id)" matTooltip="Remove">
             <mat-icon style="font-size: 16px; width: 16px; height: 16px;">close</mat-icon>
           </button>
@@ -97,8 +101,8 @@
     </ng-container>
   </div>
 
-  <div class="p-3 text-center bg-slate-50/80 border-t border-slate-100 sticky bottom-0 z-20 backdrop-blur-sm" *ngIf="hasAccess">
-    <button class="w-full text-[13px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg bg-transparent border border-transparent cursor-pointer py-2 transition-all" routerLink="/notifications">
+  <div class="p-4 text-center bg-white sticky bottom-0 z-20 border-t border-slate-100" *ngIf="hasAccess">
+    <button class="w-full text-[15px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg bg-transparent border border-transparent cursor-pointer py-2 transition-all" routerLink="/notifications">
       View all notifications
     </button>
   </div>

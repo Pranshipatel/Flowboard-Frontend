@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ForgotPasswordComponent } from './forgot-password.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -8,7 +11,11 @@ describe('ForgotPasswordComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ForgotPasswordComponent]
+      imports: [ForgotPasswordComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { forgotPassword: jasmine.createSpy('forgotPassword').and.returnValue(of('ok')) } }
+      ]
     })
     .compileComponents();
 
@@ -17,30 +24,7 @@ describe('ForgotPasswordComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ForgotPasswordComponent } from './forgot-password.component';
-
-describe('ForgotPasswordComponent', () => {
-  let component: ForgotPasswordComponent;
-  let fixture: ComponentFixture<ForgotPasswordComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ForgotPasswordComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(ForgotPasswordComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
+it('should create', () => {
     expect(component).toBeTruthy();
   });
 });

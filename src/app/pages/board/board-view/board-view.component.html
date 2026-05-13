@@ -92,9 +92,12 @@
                 <div class="card-body">
                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                      <div style="display: flex; gap: 8px; align-items: flex-start; flex: 1;">
-                       <button mat-icon-button (click)="toggleCardStatus(card, $event)" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#10B981' : '#CBD5E1')" style="width: 20px; height: 20px; line-height: 20px; padding: 0; margin-top: -2px;">
+                       <button *ngIf="!isGuest" mat-icon-button (click)="toggleCardStatus(card, $event)" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#10B981' : '#CBD5E1')" style="width: 20px; height: 20px; line-height: 20px; padding: 0; margin-top: -2px;">
                           <mat-icon style="font-size: 18px; width: 18px; height: 18px; opacity: 0.9;">{{ card.status === 'DONE' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
                        </button>
+                       <mat-icon *ngIf="isGuest" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#10B981' : '#CBD5E1')" style="font-size: 18px; width: 18px; height: 18px; opacity: 0.9; margin-top: -1px;">
+                         {{ card.status === 'DONE' ? 'check_circle' : 'radio_button_unchecked' }}
+                       </mat-icon>
                        <div class="card-title" [style.textDecoration]="card.status === 'DONE' ? 'line-through' : 'none'" [style.color]="card.coverColor ? '#ffffff' : (card.status === 'DONE' ? '#94A3B8' : 'inherit')" style="flex: 1; word-break: break-word; line-height: 1.4; margin-top: -1px; text-shadow: card.coverColor ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'; font-weight: 600;">
                          {{ card.title }}
                        </div>

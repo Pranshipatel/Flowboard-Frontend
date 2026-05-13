@@ -56,7 +56,7 @@ export class UpgradeComponent implements OnInit {
     this.paymentService.createOrder({ userId, amount }).subscribe({
       next: (response: any) => {
         const key = response.keyId || response.key || response.razorpayKey || environment.razorpayKey;
-        if (!key || key === 'rzp_test_YOUR_KEY_HERE') {
+        if (!key) {
           this.isLoading = false;
           this.snackBar.open('Payment gateway not configured. Please contact support.', 'Close', { duration: 5000 });
           return;

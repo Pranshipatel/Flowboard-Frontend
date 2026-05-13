@@ -79,7 +79,9 @@ export class CardDetailComponent implements OnInit, OnDestroy {
     this.editedTitle       = this.card.title;
     this.editedDescription = this.card.description || '';
     this.newStartDate      = this.card.startDate || '';
-    this.loadActivity();
+    if (!this.isGuest) {
+      this.loadActivity();
+    }
   }
 
   ngOnDestroy(): void {
