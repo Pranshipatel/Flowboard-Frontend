@@ -39,6 +39,19 @@ export interface Card {
   updatedAt: string | null;
 
   labels?: string[];
+  attachments?: CardAttachment[];
+}
+
+export interface CardAttachment {
+  id: number;
+  cardId: number;
+  uploadedById: number;
+  fileName: string;
+  contentType: string | null;
+  sizeBytes: number | null;
+  url: string;
+  resourceType: string;
+  createdAt: string;
 }
 
 export interface CardActivity {

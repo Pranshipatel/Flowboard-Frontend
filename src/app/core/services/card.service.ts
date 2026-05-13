@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 
 import {
   Card,
+  CardAttachment,
   CardActivity,
   CreateCardRequest,
   UpdateCardRequest,
@@ -162,6 +163,28 @@ export class CardService {
   getActivity(cardId: number): Observable<CardActivity[]> {
     return this.http.get<CardActivity[]>(
       `${this.base}/${cardId}/activity`
+    );
+  }
+
+  uploadAttachment(cardId: number, file: File): Observable<CardAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CardAttachment>(
+      `${this.base}/${cardId}/attachments`,
+      formData
+    );
+  }
+
+  getAttachments(cardId: number): Observable<CardAttachment[]> {
+    return this.http.get<CardAttachment[]>(
+      `${this.base}/${cardId}/attachments`
+    );
+  }
+
+  deleteAttachment(cardId: number, attachmentId: number): Observable<string> {
+    return this.http.delete(
+      `${this.base}/${cardId}/attachments/${attachmentId}`,
+      { responseType: 'text' }
     );
   }
 

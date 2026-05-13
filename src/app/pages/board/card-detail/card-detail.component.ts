@@ -17,7 +17,7 @@ import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 
 import {
-  Card, CardActivity, CardStatus
+  Card, CardActivity, CardAttachment, CardStatus
 } from '../../../core/models/card.model';
 import { CardService } from '../../../core/services/card.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -57,7 +57,10 @@ export class CardDetailComponent implements OnInit, OnDestroy {
   saving       = false;
   editTitle    = false;
   activity: CardActivity[] = [];
+  attachments: CardAttachment[] = [];
   loadingActivity = false;
+  uploadingAttachment = false;
+  removingAttachmentId: number | null = null;
 
   editedTitle       = '';
   editedDescription = '';
@@ -79,9 +82,11 @@ export class CardDetailComponent implements OnInit, OnDestroy {
     this.editedTitle       = this.card.title;
     this.editedDescription = this.card.description || '';
     this.newStartDate      = this.card.startDate || '';
+    this.attachments       = this.card.attachments || [];
     if (!this.isGuest) {
       this.loadActivity();
     }
+    this.loadAttachments();
   }
 
   ngOnDestroy(): void {
@@ -101,6 +106,82 @@ export class CardDetailComponent implements OnInit, OnDestroy {
         },
         error: () => this.loadingActivity = false
       });
+  }
+
+  loadAttachments(): void {
+    this.cardService.getAttachments(this.card.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: attachments => this.attachments = attachments,
+        error: () => this.attachments = this.card.attachments || []
+      });
+  }
+
+  onAttachmentSelected(event: Event): void {
+    if (this.isGuest) return;
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.uploadingAttachment = true;
+    this.cardService.uploadAttachment(this.card.id, file)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: attachment => {
+          this.uploadingAttachment = false;
+          this.attachments = [attachment, ...this.attachments];
+          this.card = { ...this.card, attachments: this.attachments };
+          this.cardUpdated.emit(this.card);
+          this.snack.open('File attached', 'Close', { duration: 2000 });
+          this.loadActivity();
+        },
+        error: error => {
+          this.uploadingAttachment = false;
+          this.snack.open(error.error?.message || 'Failed to attach file', 'Close', { duration: 3000 });
+        }
+      });
+  }
+
+  removeAttachment(attachment: CardAttachment): void {
+    if (this.isGuest || this.removingAttachmentId) return;
+    this.removingAttachmentId = attachment.id;
+    this.cardService.deleteAttachment(this.card.id, attachment.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.removingAttachmentId = null;
+          this.attachments = this.attachments.filter(item => item.id !== attachment.id);
+          this.card = { ...this.card, attachments: this.attachments };
+          this.cardUpdated.emit(this.card);
+          this.snack.open('File removed', 'Close', { duration: 2000 });
+          this.loadActivity();
+        },
+        error: () => {
+          this.removingAttachmentId = null;
+          this.snack.open('Failed to remove file', 'Close', { duration: 3000 });
+        }
+      });
+  }
+
+  openAttachment(attachment: CardAttachment): void {
+    window.open(attachment.url, '_blank', 'noopener');
+  }
+
+  attachmentIcon(attachment: CardAttachment): string {
+    const type = attachment.contentType || '';
+    if (type.includes('pdf')) return 'picture_as_pdf';
+    if (type.includes('excel') || type.includes('spreadsheet') || type.includes('csv')) return 'table_chart';
+    if (type.includes('word')) return 'description';
+    if (type.includes('image')) return 'image';
+    return 'attach_file';
+  }
+
+  formatFileSize(sizeBytes: number | null): string {
+    if (!sizeBytes) return 'Unknown size';
+    if (sizeBytes < 1024) return `${sizeBytes} B`;
+    if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   // ── Title ───────────────────────────────────────────────────────────────────

@@ -69,6 +69,47 @@
           </div>
         </div>
 
+        <!-- Attachments Block -->
+        <div class="content-block">
+          <div class="block-header">
+            <div class="block-title"><mat-icon>attach_file</mat-icon> Attachments</div>
+            <label class="btn-ghost upload-trigger" *ngIf="!isGuest" [class.disabled]="uploadingAttachment">
+              <mat-icon>{{ uploadingAttachment ? 'hourglass_top' : 'upload_file' }}</mat-icon>
+              {{ uploadingAttachment ? 'Uploading' : 'Add File' }}
+              <input type="file"
+                     accept=".pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,image/png,image/jpeg,image/webp"
+                     (change)="onAttachmentSelected($event)"
+                     [disabled]="uploadingAttachment" />
+            </label>
+          </div>
+
+          <div class="attachments-list" *ngIf="attachments.length > 0; else noAttachments">
+            <div class="attachment-item" *ngFor="let attachment of attachments">
+              <button class="attachment-open" (click)="openAttachment(attachment)">
+                <span class="attachment-icon"><mat-icon>{{ attachmentIcon(attachment) }}</mat-icon></span>
+                <span class="attachment-meta">
+                  <span class="attachment-name">{{ attachment.fileName }}</span>
+                  <span class="attachment-sub">{{ formatFileSize(attachment.sizeBytes) }} &middot; User #{{ attachment.uploadedById }} &middot; {{ attachment.createdAt | date:'MMM d' }}</span>
+                </span>
+              </button>
+              <button class="attachment-remove"
+                      *ngIf="!isGuest"
+                      (click)="removeAttachment(attachment)"
+                      [disabled]="removingAttachmentId === attachment.id"
+                      aria-label="Remove attachment">
+                <mat-icon>{{ removingAttachmentId === attachment.id ? 'hourglass_empty' : 'close' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <ng-template #noAttachments>
+            <div class="empty-attachments">
+              <mat-icon>cloud_upload</mat-icon>
+              <span>No files attached yet.</span>
+            </div>
+          </ng-template>
+        </div>
+
         <!-- Activity Timeline -->
         <div class="content-block mt-8">
           <div class="block-header">
