@@ -46,3 +46,5 @@ Thumbs.db
 # Production
 /project.lock.json
 /.angular/cache
+
+.scannerwork/
